@@ -1,0 +1,36 @@
+*{
+  font-family: 'Poppins', sans-serif;
+  color: black;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+
+@media screen and (max-width: 728px){
+
+  p{
+    font-size: 0.8rem;
+  }
+
+  h1{
+    font-size: 1.5rem;
+  }
+
+  h2{
+    font-size: 1.3rem;
+  }
+
+  h3{
+    font-size: 1.1rem;
+  }
+
+  h4{
+    font-size: 1rem;
+  }
+
+  label{
+    font-size: 0.8rem;
+  }
+  
+}
