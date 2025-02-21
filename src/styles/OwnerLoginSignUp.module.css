@@ -2,7 +2,7 @@
 
 
 .bg_style{
-background-image: url('../assets/library-bg.png');
+background-image: url('../assets/welcome.jpg');
 background-size: cover;
 background-repeat: no-repeat;
 background-attachment: fixed;
@@ -47,8 +47,11 @@ z-index: 5;
 }
 
 .heading{
-    background-color: black;
     padding: 10px;
+}
+
+.heading h1{
+    color : white;
 }
 
 .input_container{

@@ -4,7 +4,6 @@
     
     float: left;
     min-width: 200px;
-    margin: 50px 33%;
   }
   
   /* IE11 hide native button (thanks Matt!) */
@@ -41,7 +40,7 @@
     display: block;
     width: 100%;
     max-width: 320px;
-    min-height: 30px;
+    min-height: 45px;
     float: right;
     margin: 5px 0px;
     padding: 0px 24px;

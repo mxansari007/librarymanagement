@@ -5,18 +5,19 @@ const Button = ({ children, onClick,disabled,variant,loading }) => {
     <>
     {variant === 'primary-loading'?
     <button 
+    disabled={disabled}
     className={`
-        ${styles.primary_button} 
-        ${disabled?styles.primary_button_disabled:null} `} 
+        ${styles.primary_button}`} 
         onClick={onClick}>{children}<div className={`${loading?styles.primary_loading:null}`}></div></button>:
         variant === 'secondary'?
-        <button className={`
-        ${styles.secondary_button}
-        ${disabled?styles.primary_button_disabled:null}`}
+        <button 
+        disabled={disabled}
+        className={`
+          ${styles.secondary_button}
+          ${disabled?styles.primary_button_disabled:null}`}
         onClick={onClick}>{children}</button>    
         :<button className={`
-        ${styles.primary_button} 
-        ${disabled?styles.primary_button_disabled:null}`} 
+        ${styles.primary_button}`} 
         onClick={onClick}>{children}</button>
     }
     </>

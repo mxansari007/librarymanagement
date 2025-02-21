@@ -1,0 +1,52 @@
+
+
+.container{
+    display: flex;
+    min-height: 100vh;
+    justify-content: center;
+    flex-direction: column;
+
+    align-items: center;
+    background-color: #f5f5f5;
+    margin: 0;
+    background-image: url('../assets/welcome.jpg');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-position: center;
+    position:relative;
+}
+
+.header{
+    display: flex;
+    border-bottom: 1px solid #e0e0e0;
+    gap: 1em;
+    padding: 1rem 2rem;
+    justify-content: center;
+    align-items: center;
+}
+
+.button{
+    padding: 1em;
+    max-width: fit-content;
+}
+
+
+.header h1{
+    color: var(--color-secondary);
+
+}
+
+.header p{
+    color: var(--color-primary);
+    font-size: 1.5rem;
+}
+
+
+/* put ripple effect in button */
+
+.bg_style{
+
+    height: 100vh;
+    }
+    

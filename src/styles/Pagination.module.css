@@ -1,0 +1,25 @@
+
+
+.pagination_container{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1em;
+}
+
+
+.pagination_container Button{
+    max-width: fit-content;
+}
+
+Button :disabled{
+    color:'grey' !important;
+}
+
+.current_page{
+    width: fit-content;
+    height: auto;
+    background-color: var(--color-border);
+    border-radius: 5px;
+    padding: 0.5em 1em;
+}

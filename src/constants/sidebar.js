@@ -1,36 +1,31 @@
-import getIcon from "../utils/getIcons";
+import { faHouse, faBook, faUsers, faMoneyBill, faCog } from '@fortawesome/free-solid-svg-icons';
+
+
 
 const ownerOptions = [
     {
         id: 1,
         name: "Dashboard",
         link: "/owner/dashboard",
-        icon: getIcon("FaHome", "fa"), // Font Awesome Home icon
+        icon: faHouse, // Imported icon object
     },
     {
         id: 2,
-        name: "Books",
-        link: "/owner/books",
-        icon: getIcon("FaBook", "fa"), // Font Awesome Book icon
+        name: "Manage Library",
+        link: "/owner/dashboard/library",
+        icon: faBook,
     },
     {
         id: 3,
-        name: "Members",
-        link: "/owner/members",
-        icon: getIcon("MdPeople", "md"), // Material Design People icon
-    },
-    {
-        id: 4,
-        name: "Transactions",
-        link: "/owner/transactions",
-        icon: getIcon("HiCash", "hi"), // Heroicons Cash icon
+        name: "Manage Admins",
+        link: "/owner/dashboard/admin",
+        icon: faUsers,
     },
     {
         id: 5,
         name: "Settings",
-        link: "/owner/settings",
-        icon: getIcon("IoSettings", "io"), // Ionicons Settings icon
+        link: "/owner/dashboard/settings",
+        icon: faCog,
     },
 ];
-
 export default ownerOptions;

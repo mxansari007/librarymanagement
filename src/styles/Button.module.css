@@ -22,22 +22,10 @@
   background-color: var(--color-primary-click);
 }
 
-.primary_button_disabled {
-  background-color: grey;
-  cursor: not-allowed;
-}
-
-.primary_button_disabled:hover {
-  background-color: grey;
-}
-
-.primary_button_disabled:active {
-  background-color: grey;
-}
 
 
 .primary_loading{
-     width: 10px;
+     width: 20px;
     aspect-ratio: 1;
     border-radius: 50%;
     border: 2px solid white;
@@ -74,3 +62,18 @@
   background-color: var(--color-primary-click);
 }
 
+
+
+.primary_button:disabled{
+    background-color: white;
+    color:grey;
+    border: 1px solid grey;
+    cursor: not-allowed;
+}
+
+.secondary_button:disabled{
+    background-color: white;
+    color:grey;
+    border: 1px solid grey;
+    cursor: not-allowed;
+}

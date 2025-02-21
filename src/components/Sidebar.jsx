@@ -1,8 +1,19 @@
+import { useState } from 'react';
 import styles from '../styles/Sidebar.module.css';
 import ownerOptions from '../constants/sidebar.js';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { useNavigate } from 'react-router-dom';
+import { faRightFromBracket } from '@fortawesome/free-solid-svg-icons';
+const Sidebar = ({Options=ownerOptions,User="guest",logout}) => {
 
+    const [active, setActive] = useState("Dashboard");
+    const navigate = useNavigate();
 
-const Sidebar = ({Options=ownerOptions,User="guest",active='Dashboard'}) => {
+    const handleOptionClick = (option) => {
+        setActive(option.name);
+        navigate(option.link);
+    };
+
 
     return (
         <div className={styles.container}>
@@ -22,21 +33,21 @@ const Sidebar = ({Options=ownerOptions,User="guest",active='Dashboard'}) => {
             <div className={styles.options}>
                 <ul>
                     {Options.map((option,index) => { 
-                         const Icon = option.icon; // Component reference
-                         if (!Icon) {
-                             return null; // Skip rendering if the icon is null
-                         }
                         return(
-                        <li className={`
+                        <li onClick={()=>handleOptionClick(option)} className={`
                                 ${styles.option} 
                                 ${active===option.name?
                                     styles.active_option:null}`
                                 } 
                         key={index}>
-                            <Icon />
+                            <FontAwesomeIcon icon={option.icon} className={active===option.name?styles.active_option:null} />
                             {option.name}
                         </li>
                     )})}
+                    <li onClick={logout} className={styles.option}>
+                        <FontAwesomeIcon icon={faRightFromBracket}/>
+                        Logout
+                    </li>
                 </ul>
                 </div>
             
