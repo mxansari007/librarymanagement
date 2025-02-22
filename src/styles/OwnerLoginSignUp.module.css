@@ -49,10 +49,23 @@ z-index: 5;
 .heading{
     padding: 10px;
     color: white;
+    display: flex;
+    flex-direction: column;
+    gap:0.5em;
 }
 
 .heading h1{
-    color : white;
+    color : var(--color-primary-click);
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    /* stroke */
+    -webkit-text-fill-color: var(--color-secondary);
+    -webkit-text-stroke-width: 1px;
+    -webkit-text-stroke-color: var(--color-primary-click);
+    /* transparent effect */
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 10px;
+    /* box shadow */
 }
 
 .input_container{
@@ -77,9 +90,8 @@ form{
     justify-content: center;
     margin-left: auto;
     margin-right: auto;
-    gap: 2px;
-    width: 80%;
-    padding: 1em;
+    gap: 0.5em;
+    padding: 2em 3em;
 }
 
 .buttons{

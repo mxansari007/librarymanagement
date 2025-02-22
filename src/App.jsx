@@ -12,8 +12,15 @@ import Landing from './pages/Landing.jsx'
 // librarian imports
 import Librarian from './pages/librarian/Librarian.jsx'
 import LibrarianLoginSignUp from './pages/librarian/LibrarianLoginSignUp.jsx'
+import LibrarianDashboard from './pages/librarian/Dashboard.jsx'
+import LibrarianHome from './pages/librarian/Home.jsx'
 
 
+// member imports
+import Member from './pages/member/Member.jsx'
+import MemberLoginSignUp from './pages/member/MemberLoginSignUp.jsx'
+import MemberDashboard from './pages/member/Dashboard.jsx'
+import MemberHome from './pages/member/Home.jsx'
 
 
 function App() {
@@ -30,12 +37,25 @@ function App() {
           <Route path="admin" element={<OwnerManageAdmins />} />
           <Route path="settings" element={<OwnerSettings />} />
         </Route>
-      </Route>
 
+
+      </Route>
 
       <Route path="librarian" element={<Librarian />} >
         <Route index element={<LibrarianLoginSignUp />} />
+        <Route path="dashboard" element={<LibrarianDashboard />}>
+          <Route index element={<LibrarianHome />} />
+        </Route>
       </Route>
+
+
+        <Route path="member" element={<Member />} >
+          <Route index element={<MemberLoginSignUp />} />
+          <Route path="dashboard" element={<MemberDashboard />}>
+            <Route index element={<MemberHome />} />
+          </Route>
+      </Route>
+
 
     </Routes>
    </>

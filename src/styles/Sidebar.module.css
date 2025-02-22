@@ -78,3 +78,61 @@
 .active_option:hover{
     background-color: var(--color-primary);
 }
+
+
+@media screen and (max-width: 1200px){
+
+    .container{
+        display: none;
+    }
+
+    .hamburger{
+        display: flex;
+        flex-direction: column;
+        gap: 0.3em;
+        border-radius: 5px;
+        padding: 1em;
+        align-items: flex-end;
+        cursor: pointer;
+        max-width: fit-content;
+        div{
+            width: 20px;
+            height: 2px;
+            background-color: black;
+        }
+    }
+
+
+    .mobile_sidebar_container{
+        display: flex;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 30%;
+        height: 100%;
+        background-color: #f5f5f5;
+        flex-direction: column;
+        margin: 0;
+        border-right: 2px solid var(--color-border);
+        z-index: 9999;
+    }
+
+
+
+
+}
+
+
+@media screen and (max-width: 728px){
+    .mobile_sidebar_container{
+        width: 50%;
+    }
+}
+
+@media screen and (max-width: 480px){
+
+    .mobile_sidebar_container{
+        width: 100%;
+    }
+    
+}

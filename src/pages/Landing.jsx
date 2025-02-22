@@ -27,7 +27,7 @@ const Landing = () => {
                 <h1>Library Management System</h1>
             </div>
             <div className={styles.button}>
-                <Button  onClick={handleGetStartedClick}>Get Started</Button>
+                <Button  onClick={handleGetStartedClick}>{showRoles ? 'Close' : 'Get Started'}</Button>
             </div>
 
             <div className={`${styles.roles} ${showRoles ? styles.show : ''}`}>

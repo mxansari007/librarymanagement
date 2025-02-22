@@ -2,16 +2,15 @@ import { Outlet } from "react-router-dom";
 import Sidebar from "../../components/Sidebar";
 import styles from '../../styles/Dashboard.module.css';
 import { useNavigate } from "react-router-dom"
-import ownerOptions from '../../constants/sidebar';
+import {librarianOptions} from '../../constants/sidebar';
 
-
-const OwnerDashboard = () => {
+const LibrarianDashboard = () => {
 
     const navigate = useNavigate();
 
 
     const handleLogout = () => {
-        navigate('/owner');
+        navigate('/librarian');
     }
 
 
@@ -20,7 +19,7 @@ const OwnerDashboard = () => {
     return (
         <div className={styles.container}>
             <div className={styles.sidebar_container}>
-                <Sidebar Options={ownerOptions} logout={handleLogout}/>
+                <Sidebar User={{firstName:"Guest",secondName:"",role:"Librarian"}} Options={librarianOptions} logout={handleLogout}/>
             </div>
             <div className={styles.content_container}>
                 <Outlet />
@@ -29,4 +28,4 @@ const OwnerDashboard = () => {
     )
 }
 
-export default OwnerDashboard;
+export default LibrarianDashboard;
