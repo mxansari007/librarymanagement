@@ -1,4 +1,4 @@
-
+@import './LocalGlobals.module.css';
 
 .container{
     display: flex;
@@ -24,6 +24,7 @@
     padding: 1rem 2rem;
     justify-content: center;
     align-items: center;
+    background-color: transparent;
 }
 
 .button{
@@ -50,3 +51,44 @@
     height: 100vh;
     }
     
+
+.roles {
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    transition: max-height 0.5s ease-out, opacity 0.5s ease-out;
+    display: flex;
+    flex-direction: column;
+    gap:1em;
+    justify-content: center;
+    align-items: center;
+    h2{
+        color: white;
+    }
+}
+
+.roles.show {
+    max-height: 500px; /* Adjust this value based on your content */
+    opacity: 1;
+}
+
+.cards{
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 2em;
+}
+
+.card{
+    min-width: 200px;
+    cursor: pointer;
+    align-items: center;
+}
+
+.card:hover{
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.3);
+}
+
+.card:active{
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+}

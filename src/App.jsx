@@ -7,6 +7,15 @@ import OwnerManageLibrary from './pages/owner/Library.jsx'
 import OwnerManageAdmins from './pages/owner/Admin.jsx'
 import OwnerSettings from './pages/owner/Settings.jsx'
 import Landing from './pages/Landing.jsx'
+
+
+// librarian imports
+import Librarian from './pages/librarian/Librarian.jsx'
+import LibrarianLoginSignUp from './pages/librarian/LibrarianLoginSignUp.jsx'
+
+
+
+
 function App() {
 
   return (
@@ -22,6 +31,12 @@ function App() {
           <Route path="settings" element={<OwnerSettings />} />
         </Route>
       </Route>
+
+
+      <Route path="librarian" element={<Librarian />} >
+        <Route index element={<LibrarianLoginSignUp />} />
+      </Route>
+
     </Routes>
    </>
   )

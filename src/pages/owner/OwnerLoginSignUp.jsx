@@ -1,4 +1,5 @@
 import React,{useState} from 'react'
+import { Link } from 'react-router-dom'
 import libraryImage from '../../assets/library-bg.png'
 import styles from '../../styles/OwnerLoginSignUp.module.css'
 import Button from '../../components/Button'
@@ -18,12 +19,13 @@ const OwnerLoginSignUp = () => {
         <div className={styles.flex_container}>
           <div className={styles.heading}>
           <h1>Library Management System</h1>
+          <p>Change your role <Link to="/">here</Link></p>
           </div>
         </div>
         <div className={styles.flex_container}>
           <div className={styles.input_container}>
             {pageState==='signup'?<div>
-             <h3>Create Your Account</h3>
+             <h3>Create An Owner Account</h3>
               <p>Start managing your own Library</p>
               <form>
               <label>First Name</label>
@@ -43,7 +45,7 @@ const OwnerLoginSignUp = () => {
               </form>
              </div>:
              <div>
-              <h3>Login into Your Account</h3>
+              <h3>Owner Login</h3>
               <p>Start managing your own Library</p>
               <form>
               <label>Email</label>
