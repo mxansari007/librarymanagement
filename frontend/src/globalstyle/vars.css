@@ -10,6 +10,8 @@
     --color-sidebar-hover: #e0e0e0;
     --color-secondary: #414db6;
     --color-tertiary: #cecb3e;
+    --color-error: #ff0000;
+    --color-error-faded: #ff9999;
 }
 
 

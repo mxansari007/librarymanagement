@@ -1,18 +1,18 @@
-import styles from '../styles/Input.module.css';    
+import styles from '../styles/Input.module.css';
 
-
-const Input = ({ type, placeholder, value, onChange }) => {
+const Input = ({ name, type, placeholder, register, error, validation, ...rest }) => {
     return (
-        <input
-        type={type}
-        placeholder={placeholder}
-        value={value}
-        onChange={onChange}
-        className={
-            `${styles.input}`
-        }
-        />
+        <div className={styles.inputContainer}>
+            <input
+                {...(register ? register(name, validation) : {})} // Ensure register exists
+                type={type}
+                placeholder={placeholder}
+                className={`${styles.input} ${error ? styles.error : ''}`}
+                {...rest}
+            />
+            {error && <p className='error'>{error.message}</p>}
+        </div>
     );
-    }
+};
 
 export default Input;

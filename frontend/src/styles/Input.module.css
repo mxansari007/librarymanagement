@@ -12,3 +12,9 @@
         outline: 3px solid var(--color-primary-faded);
     }
 }
+
+
+.error{
+    border: 2px solid var(--color-error);
+    outline: 3px solid var(--color-error-faded);
+}

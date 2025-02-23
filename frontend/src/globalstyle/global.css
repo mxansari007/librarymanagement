@@ -55,3 +55,9 @@ a:hover{
   font-style: italic;
   background-color: var(--color-primary-faded);
 }
+
+/* error with parapgraph */
+
+p.error{
+  color: var(--color-error);
+}
