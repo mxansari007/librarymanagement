@@ -6,8 +6,9 @@ import (
 	"github.com/gin-gonic/gin"
 	configs "github.com/mxansari007/librarymanagement/config"
 	db "github.com/mxansari007/librarymanagement/database"
-	"github.com/mxansari007/librarymanagement/middlewares"
 	"github.com/mxansari007/librarymanagement/routes"
+	"github.com/gin-contrib/cors"
+	"time"
 )
 
 func main() {
@@ -22,8 +23,18 @@ func main() {
 	// Create a new Gin router
 	router := gin.Default()
 
-	// Add middlewares
-	router.Use(middlewares.AuthMiddleware())
+
+	router.Use(cors.New(cors.Config{
+        AllowOrigins:     []string{"http://localhost:5173"}, // Add allowed domains
+        AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS","PATCH"},
+        AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+        ExposeHeaders:    []string{"Content-Length","Set-Cookie"},
+        AllowCredentials: true,
+        MaxAge:           12 * time.Hour,
+    }))
+
+
+
 
 	// Set up routes
 	routes.SetupRoutes(router)

@@ -11,9 +11,10 @@ type User struct {
 	ID              uint      `gorm:"primaryKey" json:"id"`
 	FirstName       string    `gorm:"not null" json:"first_name"`
 	LastName        string    `gorm:"not null" json:"last_name"`
-	PasswordHash    string    `gorm:"not null" json:"-"`
+	PasswordHash   string    `gorm:"not null" json:"password_hash"`
 	Email           string    `gorm:"unique;not null" json:"email"`
 	Role            string    `gorm:"not null" json:"role"`
+	ContactNumber   *string   `json:"contact_number"`  
 	AadhaarNumber   *string   `gorm:"unique" json:"aadhaar_number"`
 	AadhaarImageURL *string   `json:"aadhaar_image_url"`
 	IsVerified      bool      `gorm:"default:false" json:"is_verified"`

@@ -7,8 +7,11 @@ type Book struct {
 	LibraryID uint      `gorm:"not null" json:"library_id"`
 	Title     string    `gorm:"not null" json:"title"`
 	Author    string    `gorm:"not null" json:"author"`
+	Publisher string    `json:"publisher"`
+	Version   string    `json:"version"`
 	ISBN      string    `gorm:"unique;not null" json:"isbn"`
-	Quantity  int       `gorm:"not null" json:"quantity"`
+	TotalCopies int       `gorm:"not null" json:"total_copies"`
+	AvailableCopies int    `gorm:"not null" json:"available_copies"`
 	CreatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
 }
 
