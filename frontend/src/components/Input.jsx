@@ -9,8 +9,9 @@ const Input = ({ name, type, placeholder, register, error, validation, ...rest }
                 placeholder={placeholder}
                 className={`${styles.input} ${error ? styles.error : ''}`}
                 {...rest}
+                defaultValue={rest?.defaultValue}
             />
-            {error && <p className='error'>{error.message}</p>}
+            {error && <p className='error'>*{error.message}</p>}
         </div>
     );
 };

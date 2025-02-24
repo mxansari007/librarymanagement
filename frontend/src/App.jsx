@@ -22,6 +22,8 @@ import MemberLoginSignUp from './pages/member/MemberLoginSignUp.jsx'
 import MemberDashboard from './pages/member/Dashboard.jsx'
 import MemberHome from './pages/member/Home.jsx'
 
+import OwnerPrivateRoutes from './OwnerPrivateRoutes.jsx'
+
 
 function App() {
 
@@ -31,13 +33,15 @@ function App() {
       <Route path="/" element={<Landing />} />
       <Route path="owner" element={<Owner />}>
           <Route index element={<OwnerLoginSignUp />} />
+        
+        <Route element={<OwnerPrivateRoutes />} >
         <Route path="dashboard" element={<OwnerDashboard />}>
           <Route index element={<Home />} />
           <Route path="library" element={<OwnerManageLibrary />} />
           <Route path="admin" element={<OwnerManageAdmins />} />
           <Route path="settings" element={<OwnerSettings />} />
         </Route>
-
+        </Route>
 
       </Route>
 

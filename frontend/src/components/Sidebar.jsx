@@ -1,17 +1,23 @@
-import { useState } from 'react';
+import { useState,useEffect } from 'react';
 import styles from '../styles/Sidebar.module.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { useNavigate } from 'react-router-dom';
 import { faRightFromBracket } from '@fortawesome/free-solid-svg-icons';
-const Sidebar = ({Options=ownerOptions,User={firstName:"Guest",secondName:"",role:"Owner"},logout}) => {
+const Sidebar = ({Options=ownerOptions,User={name:"Guest",role:"Owner"},logout}) => {
 
     const [active, setActive] = useState("Dashboard");
     const navigate = useNavigate();
     const [isOpen, setIsOpen] = useState(false);
 
+    useEffect(()=>{
+        setActive(localStorage.getItem('route'));
+    },[])
+
+
     const handleOptionClick = (option) => {
         setActive(option.name);
         navigate(option.link);
+        localStorage.setItem('route',option.name)
     };
 
 
@@ -26,8 +32,8 @@ const Sidebar = ({Options=ownerOptions,User={firstName:"Guest",secondName:"",rol
             <div className={styles.user}>
                 <div className={styles.avatar}></div>
                 <div className={styles.user_details}>
-                    <h3>{User.firstName}</h3>
-                    <p>{User.role}</p>
+                    <h3>{User?.name}</h3>
+                    <p>{User?.role}</p>
                 </div>
             </div>
 
@@ -74,8 +80,8 @@ const Sidebar = ({Options=ownerOptions,User={firstName:"Guest",secondName:"",rol
                 <div className={styles.user}>
                     <div className={styles.avatar}></div>
                     <div className={styles.user_details}>
-                        <h3>{User.firstName}</h3>
-                        <p>{User.role}</p>
+                        <h3>{User?.name }</h3>
+                        <p>{User?.role}</p>
                     </div>
                 </div>
                 <div className={styles.options}>
