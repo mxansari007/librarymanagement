@@ -1,166 +1,264 @@
+@import '../globalstyle/vars.css';
 
-
-
-.bg_style{
-background-image: url('../assets/welcome.jpg');
-background-size: cover;
-background-repeat: no-repeat;
-background-attachment: fixed;
-background-position: center;
-position:relative;
-height: 100vh;
+.bg_style {
+    background-image: url('../assets/blur.jpg');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-position: center;
+    position: relative;
+    height: 100vh;
+    overflow: hidden;
+    /* Prevents overflow for a cleaner look */
 }
 
-.bg_black_overlay_screen{
-background-color: rgba(0, 0, 0, 0.3);
-height: 100vh;
-position:absolute;
-width: 100%;
-left:0;
-top:0;
-z-index: 5;
+.bg_black_overlay_screen {
+    background-color: rgba(0, 0, 0, 0.25);
+    /* Slightly softer opacity */
+    height: 100vh;
+    position: absolute;
+    width: 100%;
+    left: 0;
+    top: 0;
+    z-index: 5;
+    transition: background-color 0.3s ease-in-out;
+    /* Smooth overlay transition */
 }
 
-.container{
+.container {
     display: flex;
     justify-content: center;
     align-items: center;
     z-index: 10;
-    position:absolute;
+    position: absolute;
     width: 100%;
-    left:0;
-    top:0;
-    
-    h1{
-        color:white
+    left: 0;
+    top: 0;
+    height: 100vh;
+
+    /* Full height for better centering */
+    h1 {
+        color: white;
+        font-weight: 500;
+        /* Lighter weight for elegance */
     }
- }
+}
 
-
-.flex_container{
-    flex:1;
+.flex_container {
+    flex: 1;
     display: flex;
     min-height: 100vh;
     justify-content: center;
     align-items: center;
-
+    transition: all 0.3s ease-in-out;
+    /* Smooth resizing */
 }
 
-.heading{
-    padding: 10px;
+.heading {
+    padding: 15px;
+    /* Slightly more padding for breathing room */
     color: white;
     display: flex;
     flex-direction: column;
-    gap:0.5em;
-}
+    gap: 0.75em;
+    /* Wider gap for a more relaxed layout */
+    text-align: center;
 
-.heading h1{
-    color : var(--color-primary-click);
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-    /* stroke */
-    -webkit-text-fill-color: var(--color-secondary);
-    -webkit-text-stroke-width: 1px;
-    -webkit-text-stroke-color: var(--color-primary-click);
-    /* transparent effect */
-    background-color: rgba(255, 255, 255, 0.1);
-    border-radius: 10px;
-    padding: 10px;
-    /* box shadow */
-}
+    /* Centered text for symmetry */
+    p {
+        font-size: 1.25rem;
+        /* Slightly larger for readability */
+        color: rgba(255, 255, 255, 0.9);
+        /* Softer white */
+        font-weight: 300;
+        /* Lighter weight for grace */
+    }
 
-.input_container{
-    display: flex;
-    flex-direction: column;
-    justify-items: center;
-    padding: 20px;
-    background-color: rgba(255, 255, 255, 1);
-    border-radius: 10px;
-    margin: 20px;
-    width: 80%;
-    z-index: 10;
-    position:relative;
-    h1{
-        color:black;
+    a {
+        color: var(--color-primary);
+        font-weight: 500;
+        text-decoration: none;
+        /* Cleaner look */
+        transition: color 0.2s ease-in-out;
+        /* Smooth hover effect */
+    }
+
+    a:hover {
+        color: var(--color-primary-hover);
+        /* Subtle hover feedback */
     }
 }
 
-form{
+.heading h1 {
+    color: var(--color-primary-click);
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+    /* Softer shadow */
+    -webkit-text-fill-color: var(--color-secondary);
+    -webkit-text-stroke-width: 0.5px;
+    /* Thinner stroke for refinement */
+    -webkit-text-stroke-color: var(--color-primary-click);
+    background-color: rgba(255, 255, 255, 0.15);
+    /* Slightly more transparency */
+    border-radius: 12px;
+    /* Softer corners */
+    padding: 12px 18px;
+    /* More balanced padding */
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+    /* Subtle, elegant shadow */
+    transition: all 0.25s ease-in-out;
+    /* Smooth hover/focus effect */
+}
+
+.heading h1:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    /* Gentle hover effect */
+    transform: translateY(-2px);
+    /* Subtle lift */
+}
+
+.input_container {
+    display: flex;
+    flex-direction: column;
+    justify-items: center;
+    padding: 25px;
+    /* More padding for a spacious feel */
+    background-color: rgba(255, 255, 255, 0.95);
+    /* Slight transparency for depth */
+    border-radius: 14px;
+    /* Softer rounding */
+    margin: 25px;
+    /* More margin for breathing room */
+    width: 80%;
+    z-index: 10;
+    position: relative;
+    box-shadow: 0px 6px 20px rgba(0, 0, 0, 0.08);
+    /* Softer, larger shadow */
+    transition: all 0.3s ease-in-out;
+
+    /* Smooth transitions */
+    h1 {
+        color: black;
+        font-weight: 500;
+        /* Lighter weight for elegance */
+        margin-bottom: 15px;
+        /* Space below heading */
+    }
+}
+
+form {
     display: flex;
     flex-direction: column;
     justify-content: center;
     margin-left: auto;
     margin-right: auto;
-    gap: 0.5em;
-    padding: 2em 3em;
+    gap: 1em;
+    /* Larger gap for clarity */
+    padding: 2.5em 3.5em;
+    /* More generous padding */
 }
 
-.buttons{
-    margin-top: 10px;
+.buttons {
+    margin-top: 15px;
+    /* More space above */
     margin-bottom: 5px;
+    display: flex;
+    gap: 0.75em;
+    /* Space between buttons if multiple */
 }
 
-.select_plan{
+.select_plan {
     display: flex;
     flex-direction: row;
     justify-content: flex-start;
     align-items: flex-start;
-    gap: 0.5em;
+    gap: 1em;
+    /* Wider gap for better separation */
 }
 
-.card{
-    min-width: 200px;
-    min-height: 180px;
+.card {
+    min-width: 220px;
+    /* Slightly larger for elegance */
+    min-height: 200px;
+    /* More height for balance */
     cursor: pointer;
+    border-radius: 12px;
+    /* Softer corners */
+    background-color: white;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.05);
+    /* Subtle shadow by default */
+    transition: all 0.25s ease-in-out;
+    /* Smooth hover/active effects */
 }
 
-.card:hover{
-    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.3);
+.card:hover {
+    box-shadow: 0px 6px 18px rgba(0, 0, 0, 0.15);
+    /* Slightly stronger shadow */
+    transform: translateY(-3px);
+    /* Gentle lift on hover */
 }
 
-.card:active{
-    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+.card:active {
+    box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.2);
+    /* Subtle depression on click */
+    transform: translateY(1px);
+    /* Natural press effect */
 }
 
-.card_selected{
+.card_selected {
     border: 1px solid var(--color-primary);
+    box-shadow: 0px 0px 0px 3px var(--color-primary-faded);
+    /* Elegant glow */
 }
 
-
-
-
-@media screen and (max-width: 1024px){
-
+/* Responsive Design */
+@media screen and (max-width: 1024px) {
+    .input_container {
+        width: 85%;
+        /* Slightly wider for balance */
+    }
 }
 
-
-
-@media screen and (max-width: 768px){
-
-
-
-    .container{
+@media screen and (max-width: 768px) {
+    .container {
         flex-direction: column;
         min-height: 100vh;
 
-        
-
-        h1{
-            font-size: 1.5rem;
+        h1 {
+            font-size: 1.75rem;
+            /* Slightly larger for readability */
         }
     }
 
-    .flex_container{
+    .flex_container {
         min-height: auto;
+        padding: 20px 0;
+        /* Vertical padding for flow */
     }
 
-    .input_container{
+    .input_container {
         width: 90%;
+        margin: 15px;
+        /* Reduced margin for smaller screens */
+        padding: 20px;
+        /* Adjusted padding */
     }
 
-    form{
+    form {
         width: 100%;
+        padding: 2em;
+        /* Slightly less padding */
     }
 
+    .select_plan {
+        flex-direction: column;
+        /* Stack cards vertically */
+        align-items: center;
+    }
+
+    .card {
+        min-width: 100%;
+        /* Full width for smaller screens */
+        max-width: 300px;
+        /* Cap width for balance */
+    }
 }
-
-

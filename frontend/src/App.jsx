@@ -21,6 +21,7 @@ import Member from './pages/member/Member.jsx'
 import MemberLoginSignUp from './pages/member/MemberLoginSignUp.jsx'
 import MemberDashboard from './pages/member/Dashboard.jsx'
 import MemberHome from './pages/member/Home.jsx'
+import Pending from './pages/member/Pending.jsx'
 
 import OwnerPrivateRoutes from './OwnerPrivateRoutes.jsx'
 import LibrarianPrivateRoutes from './LibrarianPrivateRoutes.jsx'
@@ -58,6 +59,7 @@ function App() {
 
         <Route path="member" element={<Member />} >
           <Route index element={<MemberLoginSignUp />} />
+        <Route path='pending' element={<Pending />} />
           <Route path="dashboard" element={<MemberDashboard />}>
             <Route index element={<MemberHome />} />
           </Route>

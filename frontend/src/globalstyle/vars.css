@@ -1,17 +1,52 @@
+:root {
+    /* Refined Primary Colors */
+    --color-primary: #3B4CCA;
+    /* A softer, more regal blue (less harsh than #2A2AEB) */
+    --color-primary-hover: #5C6ED9;
+    /* Lighter, airy hover state */
+    --color-primary-click: #2A3B99;
+    /* Deeper, muted click state */
+    --color-primary-faded: #D6D9F2;
+    /* Subtle, pastel fade for outlines or glows */
 
+    /* Refined Border and Sidebar */
+    --color-border: #E5E7EB;
+    /* Softer gray for a cleaner, less stark border */
+    --color-sidebar-hover: #d7dade;
+    /* Very light gray for a subtle hover effect */
 
+    /* Refined Secondary and Tertiary */
+    --color-secondary: #5A67D8;
+    /* A gentler, more sophisticated purple-blue */
+    --color-tertiary: #D4C94D;
+    /* Warmer, less brassy gold for elegance */
 
-:root{
-    --color-primary:#2A2AEB;
-    --color-primary-hover: #0056b3;
-    --color-primary-click: #002366;
-    --color-primary-faded: #bbbbe9;
-    --color-border: #e0e0e0;
-    --color-sidebar-hover: #e0e0e0;
-    --color-secondary: #414db6;
-    --color-tertiary: #cecb3e;
-    --color-error: #ff0000;
-    --color-error-faded: #ff9999;
+    /* Refined Error Colors */
+    --color-error: #E53E3E;
+    /* A softer, less aggressive red */
+    --color-error-faded: #FECACA;
+    /* Pale, graceful error highlight */
+
+    /* Extra Awesome Colors */
+    --color-accent: #FFB6C1;
+    /* A delicate pastel pink for accents */
+    --color-accent-dark: #FF85A1;
+    /* Richer pink for contrast */
+    --color-success: #38A169;
+    /* Calm, forest green for success states */
+    --color-success-faded: #C6F6D5;
+    /* Light mint for success backgrounds */
+    --color-warning: #ED8936;
+    /* Warm, approachable orange for warnings */
+    --color-warning-faded: #FEEBC8;
+    /* Subtle peach for warning highlights */
+    --color-neutral: #6B7280;
+    /* Sophisticated mid-gray for text or muted elements */
+    --color-background: #F9FAFB;
+    /* Off-white for a soft, clean background */
+    --color-shadow: rgba(0, 0, 0, 0.05);
+    /* Subtle shadow for graceful depth */
+    --color-gentle-hover: rgba(243, 243, 243, 0.819);
+    /* Even softer shadow for delicate depth */
+    --color-placeholder: #9CA3AF;
 }
-
-

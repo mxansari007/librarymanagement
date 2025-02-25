@@ -36,6 +36,12 @@ func SetupRoutes(router *gin.Engine) {
 
 	}
 
+	member := router.Group("/member")
+	{
+		member.POST("/signup", handlers.SignupMember(db.DB))
+		member.Use(middlewares.AuthMiddleware("member"))
+
+	}
 
 
 }

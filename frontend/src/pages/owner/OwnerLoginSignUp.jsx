@@ -129,6 +129,7 @@ const OwnerLoginSignUp = () => {
       <div className={styles.bg_black_overlay_screen}></div>
       <div className={styles.container}>
         <div className={styles.flex_container}>
+          
           <div className={styles.heading}>
             <h1>Library Management System</h1>
             <p>
@@ -354,9 +355,8 @@ const OwnerLoginSignUp = () => {
                     validation={{ required: "Please enter your password" }}
                   />
 
-                  <div className={styles.buttons}>
+
                     <Button type="submit">Login</Button>
-                  </div>
                   <p>
                     Don't have an account?{" "}
                     <a onClick={() => setPageState("signup")}>

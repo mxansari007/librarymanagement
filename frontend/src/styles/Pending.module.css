@@ -1,0 +1,82 @@
+.body {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: url('../assets/blur.jpg');
+    /* Changed to image background */
+    font-family: 'Arial', sans-serif;
+}
+
+.container {
+    text-align: center;
+    background: var(--color-background);
+    /* #F9FAFB off-white */
+    padding: 40px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px var(--color-shadow);
+    /* rgba(0, 0, 0, 0.05) */
+    max-width: 500px;
+}
+
+.title {
+    font-size: 2rem;
+    color: var(--color-primary);
+    /* #3B4CCA softer blue */
+    margin-bottom: 20px;
+    font-weight: 600;
+}
+
+.message {
+    font-size: 1.2rem;
+    color: var(--color-neutral);
+    /* #6B7280 mid-gray */
+    margin-bottom: 30px;
+    line-height: 1.5;
+}
+
+.loader {
+    width: 50px;
+    height: 50px;
+    border: 5px solid var(--color-primary-faded);
+    /* #D6D9F2 pastel fade */
+    border-top: 5px solid var(--color-primary);
+    /* #3B4CCA softer blue */
+    border-radius: 50%;
+    animation: spin 1.5s linear infinite;
+    margin: 0 auto 20px;
+}
+
+.subtext {
+    font-size: 0.9rem;
+    color: var(--color-placeholder);
+    /* #9CA3AF gray */
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+
+.divider {
+    margin: 20px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.button_container {
+    display: flex;
+    justify-content: center;
+    gap: 1em;
+    margin-top: 20px;
+}

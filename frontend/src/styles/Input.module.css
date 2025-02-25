@@ -1,70 +1,105 @@
 @import '../globalstyle/vars.css';
 
 .input {
-    padding: 12px 14px;
-    border-radius: 6px;
+    padding: 12px 16px;
+    /* Slightly wider padding for a more relaxed feel */
+    border-radius: 8px;
+    /* Softer, more rounded corners */
     border: 1px solid var(--color-primary);
     width: 100%;
     font-size: 1rem;
-    transition: all 0.3s ease-in-out;
+    font-family: inherit;
+    /* Ensures font consistency with the site */
+    transition: all 0.2s ease-in-out;
+    /* Slower, smoother transition */
     background-color: white;
     color: var(--color-text);
-    box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.1);
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.05);
+    /* Softer, subtler shadow */
 }
 
 /* Focus Effect */
 .input:focus {
-    border: 2px solid var(--color-primary-hover);
-    outline: 4px solid var(--color-primary-faded);
-    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.15);
+    border: 1px solid var(--color-primary-hover);
+    /* Thinner border for elegance */
+    outline: none;
+    /* Remove default outline */
+    box-shadow: 0px 0px 0px 3px var(--color-primary-faded),
+        /* Glow effect */
+        0px 2px 6px rgba(0, 0, 0, 0.1);
+    /* Layered shadow for depth */
+    transform: translateY(-1px);
+    /* Slight lift for a graceful hover */
 }
 
 /* Error State */
 .input.error {
-    border: 2px solid var(--color-error);
-    outline: 4px solid var(--color-error-faded);
+    border: 1px solid var(--color-error);
+    /* Thinner border for consistency */
+    box-shadow: 0px 0px 0px 3px var(--color-error-faded),
+        /* Subtle glow */
+        0px 2px 4px rgba(0, 0, 0, 0.05);
     background-color: var(--color-error-light);
     color: var(--color-error-dark);
+    transition: all 0.15s ease-in-out;
+    /* Slightly faster for error feedback */
 }
 
 /* Disabled State */
 .input:disabled {
-    background-color: #f5f5f5;
-    color: #888;
-    border: 1px solid #ddd;
+    background-color: #fafafa;
+    /* Softer gray for a cleaner look */
+    color: #999;
+    /* Slightly lighter gray for less harshness */
+    border: 1px solid #e0e0e0;
+    /* More neutral border */
     cursor: not-allowed;
+    box-shadow: none;
+    /* Remove shadow for a flat, inactive feel */
 }
 
 /* Placeholder Styling */
 .input::placeholder {
     color: var(--color-placeholder);
-    opacity: 0.8;
-    transition: opacity 0.3s ease;
+    opacity: 0.7;
+    /* Slightly softer opacity */
+    font-style: italic;
+    /* Adds a touch of elegance */
+    transition: opacity 0.25s ease-in-out;
+    /* Smooth fade */
 }
 
 .input:focus::placeholder {
-    opacity: 0.5;
+    opacity: 0.4;
+    /* More subtle fade on focus */
 }
 
 /* Responsive Design */
 @media screen and (max-width: 768px) {
     .input {
-        font-size: 0.9rem;
-        padding: 10px 12px;
+        font-size: 0.95rem;
+        /* Slightly larger for readability */
+        padding: 10px 14px;
+        /* Adjusted padding */
+        border-radius: 7px;
+        /* Keeps the softer curve */
     }
 }
 
 @media screen and (max-width: 480px) {
     .input {
-        font-size: 0.85rem;
-        padding: 8px 10px;
+        font-size: 0.9rem;
+        padding: 8px 12px;
+        border-radius: 6px;
     }
 }
 
 /* Remove Focus Outline for Touch Devices */
 @media (hover: none) {
     .input:focus {
-        outline: none;
-        box-shadow: none;
+        box-shadow: 0px 0px 0px 2px var(--color-primary-faded);
+        /* Subtle glow only */
+        transform: none;
+        /* No lift on touch devices */
     }
 }
