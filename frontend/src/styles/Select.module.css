@@ -1,57 +1,63 @@
 .selectdiv {
-    position: relative;
-    /*Don't really need this just for demo styling*/
-    
-    float: left;
-    min-width: 200px;
-  }
-  
-  /* IE11 hide native button (thanks Matt!) */
-  select::-ms-expand {
+  position: relative;
+  display: block;
+  align-items: center;
+
+  max-width: 320px;
+  min-width: 200px;
+  margin: 5px auto;
+}
+
+/* Hide default dropdown arrow in IE11 */
+select::-ms-expand {
   display: none;
+}
+
+/* Custom dropdown arrow (inside the select box) */
+.selectdiv:after {
+  content: '▼'; /* Unicode arrow */
+  font: 1rem "Poppins", sans-serif;
+  color: #333;
+  position: absolute;
+  right: 12px; /* Adjust to move it inside */
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+/* Styling for the select element */
+.selectdiv select {
+  width: 100%;
+  padding: 12px 36px 12px 16px; /* Increased right padding for arrow space */
+  font-size: 16px;
+  line-height: 1.5;
+  color: #333;
+  background-color: #ffffff;
+  border: 1px solid #cccccc;
+  border-radius: 5px;
+  appearance: none; /* Remove default styles */
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 768px) {
+  .selectdiv {
+    max-width: 100%; 
+    min-width: auto;
   }
-  
-  .selectdiv:after {
-    content: '>';
-    font: 1rem "Poppins", monospace;
-    color: #333;
-    -webkit-transform: rotate(90deg);
-    -moz-transform: rotate(90deg);
-    -ms-transform: rotate(90deg);
-    transform: rotate(90deg);
-    right: 11px;
-    /*Adjust for position however you want*/
-    
-    top: 18px;
-    padding: 0 0 2px;
-    border-bottom: 1px solid #999;
-    /*left line */
-    
-    position: absolute;
-    pointer-events: none;
-  }
-  
+
   .selectdiv select {
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
-    /* Add some styling */
-    
-    display: block;
-    width: 100%;
-    max-width: 320px;
-    min-height: 45px;
-    float: right;
-    margin: 5px 0px;
-    padding: 0px 24px;
-    font-size: 16px;
-    line-height: 1.75;
-    color: #333;
-    background-color: #ffffff;
-    background-image: none;
-    border: 1px solid #cccccc;
-    -ms-word-break: normal;
-    word-break: normal;
+    font-size: 14px;
+    padding: 10px 34px 10px 12px; /* Adjusted right padding */
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .selectdiv select {
+    font-size: 14px;
+    padding: 10px 30px 10px 12px; /* Keep arrow inside select */
   }
 
-
+  .selectdiv:after {
+    right: 10px; /* Slight adjustment */
+  }
+}

@@ -1,36 +1,82 @@
-
-table{
+/* Ensure the table is contained within a scrollable div */
+.table_container {
     width: 100%;
-    border-collapse: collapse;
+    overflow-x: auto; /* Enables horizontal scrolling */
+    max-width: 100%; /* Prevents affecting the layout */
 }
 
+/* Basic table styles */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 700px; /* Ensures the table maintains a good width */
+}
 
-
-thead{
+thead {
     background-color: #f1f1f1;
     border-bottom: 1px solid #e0e0e0;
 }
 
-tbody{
+tbody {
     background-color: white;
 }
 
-th{
+th, td {
     padding: 1em;
     text-align: left;
+    white-space: nowrap; /* Prevents text from breaking inside cells */
 }
 
-td{
-    padding: 1em;
-}
-
-tr{
+tr {
     border-bottom: 1px solid #e0e0e0;
     cursor: pointer;
 }
 
-tr:hover{
+tr:hover {
     background-color: #f5f5f5;
 }
 
+/* Prevents page overflow */
+body, html {
+    overflow-x: hidden; /* Ensures no horizontal scrolling for the page */
+}
 
+/* Responsive adjustments */
+@media screen and (max-width: 1024px) {
+    table {
+        min-width: 90%;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    .table_container {
+        overflow-x: auto;
+        max-width: 100%;
+    }
+
+    table {
+        min-width: 700px; /* Ensures it doesn't shrink too much */
+    }
+
+    th, td {
+        padding: 0.8em;
+        font-size: 14px;
+    }
+}
+
+@media screen and (max-width: 600px) {
+    .table_container {
+        overflow-x: auto;
+        max-width: 100%;
+        padding: 0.5em;
+    }
+
+    table {
+        min-width: 600px; /* Keeps table readable */
+    }
+
+    th, td {
+        padding: 0.6em;
+        font-size: 12px;
+    }
+}

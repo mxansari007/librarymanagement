@@ -17,8 +17,8 @@ const ownerOptions = [
     },
     {
         id: 3,
-        name: "Manage Admins",
-        link: "/owner/dashboard/admin",
+        name: "Manage Librarian",
+        link: "/owner/dashboard/librarian",
         icon: faUsers,
     },
     {
@@ -52,7 +52,7 @@ const librarianOptions = [
         {
             id: 6,
             name:"Manage Books",
-            link:"/librarian/dashboard/library",
+            link:"/librarian/dashboard/books",
             icon:faBook
 
         },

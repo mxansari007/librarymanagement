@@ -1,8 +1,26 @@
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import styles from '../styles/Modal.module.css'
-import { faXmark } from '@fortawesome/free-solid-svg-icons'
+import { useEffect } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import styles from "../styles/Modal.module.css";
+import { faXmark } from "@fortawesome/free-solid-svg-icons";
 
 const Modal = ({ label, children, modalState, setModalState }) => {
+    
+    useEffect(() => {
+        const handleKeyDown = (event) => {
+            if (event.key === "Escape") {
+                setModalState(false);
+            }
+        };
+
+        if (modalState) {
+            window.addEventListener("keydown", handleKeyDown);
+        }
+
+        return () => {
+            window.removeEventListener("keydown", handleKeyDown);
+        };
+    }, [modalState]);
+
     return (
         <div className={`${styles.modal} ${modalState ? styles.modal_open : styles.modal_close}`}>
             <div className={styles.modal_content}>
@@ -19,6 +37,3 @@ const Modal = ({ label, children, modalState, setModalState }) => {
 };
 
 export default Modal;
-
-
-

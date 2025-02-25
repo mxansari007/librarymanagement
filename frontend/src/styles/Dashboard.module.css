@@ -1,20 +1,65 @@
-
-
-.container{
+.container {
     display: flex;
     min-height: 100vh;
-    flex-direction: row;
     background-color: #f5f5f5;
     margin: 0;
-    border-right: 2px solid var(--color-border);
 }
 
-.sidebar_container{
+/* Sidebar */
+.sidebar_container {
     flex: 1;
+    max-width: 250px;
+    transition: transform 0.3s ease-in-out;
 }
 
-.content_container{
+/* Content */
+.content_container {
     flex: 4;
     padding: 1em;
+    width: 100%;
 }
 
+/* Responsive Design */
+@media screen and (max-width: 1024px) {
+    .sidebar_container {
+        max-width: 200px;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    .container {
+        flex-direction: column;
+    }
+
+    .sidebar_container {
+        max-width: 100%;
+        transform: translateX(-100%);
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100%;
+        background-color: white;
+        z-index: 1000;
+        box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .sidebar_open {
+        transform: translateX(0);
+    }
+
+    .toggle_button {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        background: var(--color-primary);
+        color: white;
+        border: none;
+        padding: 8px 12px;
+        cursor: pointer;
+        border-radius: 4px;
+    }
+
+    .content_container {
+        padding: 1em;
+    }
+}

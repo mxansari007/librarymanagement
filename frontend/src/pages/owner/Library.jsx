@@ -100,7 +100,7 @@ const OwnerManageLibrary = ()=>{
     const fetchLibraries = async () => {
       try {
         const res = await axios.get(import.meta.env.VITE_BASE_URL + "/owner/libraries", {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+          headers: { Authorization: `Bearer ${localStorage.getItem("owner_token")}` },
           withCredentials: true,
         });
   
@@ -120,7 +120,7 @@ const OwnerManageLibrary = ()=>{
           subscription_type: data.subscription_type,
           rate: data.subscription_type === "paid" ? data.rate : 0,
         }, {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+          headers: { Authorization: `Bearer ${localStorage.getItem("owner_token")}` },
           withCredentials: true,
         });
   
@@ -139,7 +139,7 @@ const OwnerManageLibrary = ()=>{
     const deleteLibrary = async (row) => {
       try {
         const res = await axios.delete(import.meta.env.VITE_BASE_URL + `/owner/libraries/${row.id}`, {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+          headers: { Authorization: `Bearer ${localStorage.getItem("owner_token")}` },
           withCredentials: true,
         });
   
@@ -169,7 +169,7 @@ const OwnerManageLibrary = ()=>{
                 subscription_type: data.subscription_type,
                 rate: data.subscription_type === "paid" ?  Number(data.rate) : 0
             },
-            headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+            headers: { Authorization: `Bearer ${localStorage.getItem("owner_token")}` },
             withCredentials: true
         });
 

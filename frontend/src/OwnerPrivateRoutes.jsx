@@ -1,8 +1,7 @@
 import { Navigate, Outlet } from 'react-router-dom'
-import { useEffect,useState } from 'react'
 const OwnerPrivateRoutes = () => {
   
-  let auth = {token:localStorage.getItem('token')}
+  let auth = {token:localStorage.getItem('owner_token')}
 
 
 return (

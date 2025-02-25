@@ -4,11 +4,52 @@ import libraryImage from '../../assets/library-bg.png'
 import styles from '../../styles/OwnerLoginSignUp.module.css'
 import Button from '../../components/Button'
 import Input from '../../components/Input'
+import { useForm } from 'react-hook-form'
+import { DevTool } from '@hookform/devtools'
+import axios from 'axios'
+import { toast, ToastContainer } from'react-toastify';
+import { useNavigate } from'react-router-dom'
 
 
 const LibrarianLoginSignUp = () => {
 
-  const [pageState, setPageState] = useState('login')
+
+  const {register, handleSubmit, formState:{errors}} = useForm(
+    {
+      mode: "all",
+      defaultValues: {
+        email: "",
+        password: "",
+      },
+    }
+  )
+
+  const navigate = useNavigate()
+
+
+  const handleLogin = async (data) => {
+
+    try{
+      const res = await axios({
+        method:"post",
+        url: import.meta.env.VITE_BASE_URL + "/user/login",
+        data: {
+          email: data.email,
+          password_hash: data.password,
+        },
+        withCredentials: true,
+      })
+      if(res.status === 200){
+        localStorage.setItem("user", JSON.stringify(res.data.user));
+        localStorage.setItem("librarian_token", res.data.token);
+        localStorage.setItem("route","Dashboard")
+        navigate("/librarian/dashboard")
+      }
+
+    }catch(error){
+      console.error("Login error:", error);
+    }
+  }
 
 
 
@@ -24,41 +65,27 @@ const LibrarianLoginSignUp = () => {
         </div>
         <div className={styles.flex_container}>
           <div className={styles.input_container}>
-            {pageState==='signup'?<div>
-             <h3>Create An Librarian Account</h3>
-              <p>Start managing your own Library</p>
-              <form>
-              <label>First Name</label>
-              <Input type="text" placeholder="First Name" />
-              <label>Last Name</label>
-              <Input type="text" placeholder="Last Name" />
-              <label>Email</label>
-              <Input type="email" placeholder="Email" />
-              <label>Password</label>
-              <Input type="password" placeholder="Password" />
-              <label>Confirm Password</label>
-              <Input type="password" placeholder="Confirm Password" />
-              <div className={styles.buttons}>
-              <Button>Sign Up</Button>
-              </div>
-              <p>Already have an account? <a onClick={()=>setPageState('login')}>Login</a></p>
-              </form>
-             </div>:
              <div>
               <h3>Librarian Login</h3>
               <p>Start managing your own Library</p>
-              <form>
-              <label>Email</label>
-              <Input type="email" placeholder="Email" />
-              <label>Password</label>
-              <Input type="password" placeholder="Password" />
+              <form onSubmit={handleSubmit(handleLogin)}>
+              <Input 
+              register={register}
+              name="email"
+              error={errors.email}
+              validation={{ required: "Please enter your email" }}
+              type="email" placeholder="Email" />
+              <Input 
+              register={register}
+              name="password"
+              error={errors.password}
+              validation={{ required: "Please Enter your password" }}
+              type="password" placeholder="Password" />
               <div className={styles.buttons}>
-              <Button>Login</Button>
+              <Button type="submit">Login</Button>
               </div>
-              <p>Don't have an account? <a onClick={()=>setPageState('signup')}>Create your Account</a></p>
               </form>
               </div>
-             }
            </div>
         </div>
       </div>

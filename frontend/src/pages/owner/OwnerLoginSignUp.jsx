@@ -6,6 +6,7 @@ import Input from "../../components/Input";
 import { useForm } from "react-hook-form";
 import { DevTool } from "@hookform/devtools";
 import axios from "axios";
+import { toast, ToastContainer } from "react-toastify";
 
 const OwnerLoginSignUp = () => {
   const [pageState, setPageState] = useState("login");
@@ -48,6 +49,10 @@ const OwnerLoginSignUp = () => {
     setValue("plan_type", planType);
   }, [planType, setValue]);
 
+  const ErrorToast = (msg) => toast.error(msg);
+
+
+
   const onSubmitSignUp = async (data) => {
     console.log("Sign Up Data:", data);
 
@@ -89,12 +94,19 @@ const OwnerLoginSignUp = () => {
       });
 
       if (res.status === 200) {
-        localStorage.setItem("token", res.data.token);
-        //strigyfy user details
-        localStorage.setItem("user", JSON.stringify(res.data.user));
 
-        console.log("Login success:", res.data);
-        navigate("/owner/dashboard")
+        if(res.data.user.role === 'owner'){
+
+          localStorage.setItem("owner_token", res.data.token);
+          //strigyfy user details
+          localStorage.setItem("user", JSON.stringify(res.data.user));
+          localStorage.setItem('route',"Dashboard")
+
+          console.log("Login success:", res.data);
+          navigate("/owner/dashboard")
+        }else {
+            ErrorToast("Only owners can login from here")
+        }
       }
     }catch (error) {
         console.error("Login error:", error);
@@ -358,6 +370,7 @@ const OwnerLoginSignUp = () => {
         </div>
       </div>
       <DevTool control={control} />
+      <ToastContainer />
     </div>
   );
 };

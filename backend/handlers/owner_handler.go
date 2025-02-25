@@ -249,3 +249,128 @@ func UpdateLibrary(db *gorm.DB) gin.HandlerFunc {
 		})
 	}
 }
+
+
+func CreateLibrarian(db *gorm.DB) gin.HandlerFunc {
+    return func(c *gin.Context) {
+        var req struct {
+            FirstName     string `json:"first_name" binding:"required"`
+            LastName      string `json:"last_name" binding:"required"`
+            Email         string `json:"email" binding:"required,email"`
+            Password      string `json:"password" binding:"required,min=8"`
+            ContactNumber string `json:"contact_number"`
+            LibraryID     uint   `json:"library_id" binding:"required"`
+        }
+
+        if err := c.ShouldBindJSON(&req); err != nil {
+            c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+            return
+        }
+
+        hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+        if err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
+            return
+        }
+
+        tx := db.Begin()
+        defer func() {
+            if r := recover(); r != nil {
+                tx.Rollback()
+            }
+        }()
+
+        // Create the user
+        user := models.User{
+            FirstName:     req.FirstName,
+            LastName:      req.LastName,
+            Email:         req.Email,
+            PasswordHash:  string(hashedPassword),
+            Role:          "librarian",
+            ContactNumber: &req.ContactNumber,
+        }
+
+        if err := tx.Create(&user).Error; err != nil {
+            tx.Rollback()
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
+            return
+        }
+
+        // Create the librarian
+        librarian := models.Librarian{
+            UserID:    user.ID,
+            LibraryID: req.LibraryID,
+			AssignedAt: time.Now(),
+        }
+
+        if err := tx.Create(&librarian).Error; err != nil {
+            tx.Rollback()
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create librarian"})
+            return
+        }
+
+        if err := tx.Commit().Error; err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to commit transaction"})
+            return
+        }
+
+        c.JSON(http.StatusCreated, gin.H{
+            "message":      "Librarian created successfully",
+            "user_id":      user.ID,
+            "librarian_id": librarian.ID,
+        })
+    }
+}
+
+func GetAllLibrarians(db *gorm.DB) gin.HandlerFunc {
+    return func(c *gin.Context) {
+        type LibrarianWithUser struct {
+            models.Librarian
+            FirstName     string     `json:"first_name"`
+            LastName      string     `json:"last_name"`
+            Email         string     `json:"email"`
+            Role          string     `json:"role"`
+            ContactNumber *string    `json:"contact_number"`
+            IsVerified    bool       `json:"is_verified"`
+            CreatedAt     time.Time  `json:"created_at"`
+        }
+        
+        var librariansWithUsers []LibrarianWithUser
+        
+        // Join librarians with users
+        if err := db.Table("librarians").
+            Select("librarians.*, users.first_name, users.last_name, users.email, users.role, users.contact_number, users.is_verified, users.created_at").
+            Joins("JOIN users ON librarians.user_id = users.id").
+            Scan(&librariansWithUsers).Error; err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve librarians"})
+            return
+        }
+        
+        // Transform to the desired response format
+        var response []gin.H
+        for _, lib := range librariansWithUsers {
+            librarianData := gin.H{
+                "id":          lib.ID,
+                "user_id":     lib.UserID,
+                "library_id":  lib.LibraryID,
+                "assigned_at": lib.AssignedAt,
+                "user": gin.H{
+                    "id":             lib.UserID,
+                    "first_name":     lib.FirstName,
+                    "last_name":      lib.LastName,
+                    "email":          lib.Email,
+                    "role":           lib.Role,
+                    "contact_number": lib.ContactNumber,
+                    "is_verified":    lib.IsVerified,
+                    "created_at":     lib.CreatedAt,
+                },
+            }
+            
+            response = append(response, librarianData)
+        }
+        
+        c.JSON(http.StatusOK, gin.H{
+            "librarians": response,
+        })
+    }
+}

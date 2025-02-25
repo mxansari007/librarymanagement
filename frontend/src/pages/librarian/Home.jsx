@@ -1,3 +1,4 @@
+import {useState,useEffect} from 'react'
 import Select from "../../components/Select"
 import styles from '../../styles/OwnerDashHome.module.css'
 import Table from "../../components/Table"
@@ -35,13 +36,24 @@ const columnDefs = [
 
 const LibrarianHome = () => {
 
+    const [libraryName, setLibraryName] = useState(null);
+
+    useEffect(() => {
+        // Fetch data from API or local storage
+        //...
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+            const user = JSON.parse(storedUser);
+            setLibraryName(user.library_name);
+          }
+    }, [])
 
 
     return (
         <>
         <div className={styles.header}>
             <h1>Dashboard</h1>
-           <p>{'Library 1'}</p>
+           <p>{libraryName}</p>
         </div>
 
         <div className={styles.status_area}>

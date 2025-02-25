@@ -1,20 +1,70 @@
+@import '../globalstyle/vars.css';
 
-
-
-.input{
-    padding: 0.5em;
-    border-radius: 5px;
+.input {
+    padding: 12px 14px;
+    border-radius: 6px;
     border: 1px solid var(--color-primary);
     width: 100%;
     font-size: 1rem;
-    &:focus{
-        border: 2px solid var(--color-primary-hover);
-        outline: 3px solid var(--color-primary-faded);
+    transition: all 0.3s ease-in-out;
+    background-color: white;
+    color: var(--color-text);
+    box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Focus Effect */
+.input:focus {
+    border: 2px solid var(--color-primary-hover);
+    outline: 4px solid var(--color-primary-faded);
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.15);
+}
+
+/* Error State */
+.input.error {
+    border: 2px solid var(--color-error);
+    outline: 4px solid var(--color-error-faded);
+    background-color: var(--color-error-light);
+    color: var(--color-error-dark);
+}
+
+/* Disabled State */
+.input:disabled {
+    background-color: #f5f5f5;
+    color: #888;
+    border: 1px solid #ddd;
+    cursor: not-allowed;
+}
+
+/* Placeholder Styling */
+.input::placeholder {
+    color: var(--color-placeholder);
+    opacity: 0.8;
+    transition: opacity 0.3s ease;
+}
+
+.input:focus::placeholder {
+    opacity: 0.5;
+}
+
+/* Responsive Design */
+@media screen and (max-width: 768px) {
+    .input {
+        font-size: 0.9rem;
+        padding: 10px 12px;
     }
 }
 
+@media screen and (max-width: 480px) {
+    .input {
+        font-size: 0.85rem;
+        padding: 8px 10px;
+    }
+}
 
-.error{
-    border: 2px solid var(--color-error);
-    outline: 3px solid var(--color-error-faded);
+/* Remove Focus Outline for Touch Devices */
+@media (hover: none) {
+    .input:focus {
+        outline: none;
+        box-shadow: none;
+    }
 }

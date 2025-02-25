@@ -1,134 +1,152 @@
-*{
+/* Reset and Base Styles */
+* {
   font-family: 'Poppins', sans-serif;
-   margin: 0;
+  margin: 0;
   padding: 0;
   box-sizing: border-box;
+  scroll-behavior: smooth;
 }
 
+/* Global Styling */
+html {
+  font-size: 14px; /* Reduced from 16px to make text smaller */
+}
 
-@media screen and (max-width: 728px){
+body {
+  background-color: var(--color-background, #f9f9f9);
+  color: var(--color-text, #333);
+  line-height: 1.5;
+  font-weight: 400; /* Reduced from bold to normal */
+}
 
-  p{
-    font-size: 0.8rem;
+/* Headings */
+h1 {
+  font-size: 1.6rem;
+  font-weight: 500; /* Slightly lighter */
+}
+
+h2 {
+  font-size: 1.4rem;
+  font-weight: 500;
+}
+
+h3 {
+  font-size: 1.2rem;
+  font-weight: 500;
+}
+
+h4 {
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+p {
+  font-size: 0.9rem;
+  font-weight: 400;
+  color: var(--color-text, #444);
+}
+
+/* Responsive Typography */
+@media screen and (max-width: 728px) {
+  html {
+    font-size: 13px; /* Further reduction on smaller screens */
   }
 
-  h1{
-    font-size: 1.5rem;
+  h1 {
+    font-size: 1.4rem;
   }
 
-  h2{
-    font-size: 1.3rem;
+  h2 {
+    font-size: 1.2rem;
   }
 
-  h3{
+  h3 {
     font-size: 1.1rem;
   }
 
-  h4{
+  h4 {
     font-size: 1rem;
   }
 
-  label{
-    font-size: 0.8rem;
+  p {
+    font-size: 0.85rem;
   }
-  
 }
 
-
-.pagination_area{
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 1em;
-}
-
-
-a{
+/* Links */
+a {
   text-decoration: none;
   color: var(--color-primary);
-  cursor: pointer;
-
+  font-weight: 500; /* Avoiding extra boldness */
 }
 
-a:hover{
+a:hover {
   color: var(--color-primary-hover);
   font-style: italic;
   background-color: var(--color-primary-faded);
+  padding: 2px 5px;
+  cursor: pointer;
 }
 
-/* error with parapgraph */
+/* Buttons */
+button {
+  font-size: 0.9rem; /* Reduced size */
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+}
 
-p.error{
+/* Error Styling */
+p.error {
   color: var(--color-error);
+  font-weight: 500;
 }
 
-
-.card{
+/* Cards */
+.card {
   display: flex;
   flex-direction: column;
   gap: 1em;
   padding: 1em;
   background-color: white;
-  border-radius: 5px;
-  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 6px;
+  box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.08);
 }
 
-/* radio input css */
-
-input[type="radio"] {
-
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  border: 2px solid var(--color-primary);
-  cursor: pointer;
-  margin-right: 5px;
-  background-color: transparent;
-  transition: background-color 0.3s ease;
-  padding: 5px;
+.card:hover {
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.12);
 }
 
-input[type="radio"]:checked {
-  background-color: var(--color-primary);
-}
-
-input[type="radio"]:hover {
-  background-color: var(--color-primary-hover);
-}
-
-.radio_container{
-  display: flex;
-  flex-direction: row;
-  gap: 1em;
-}
-
-
-.toast_container{
-  position: fixed;
-  top: 0;
-  right: 0;
-  z-index: 9999;
-
-}
-
-
-.Toastify__toast{
-  width: var(--toastify-toast-width);
-  min-height: var(--toastify-toast-min-height);
-  padding: var(--toastify-toast-padding);
-  border-radius: var(--toastify-toast-bd-radius);
-  box-shadow: 1px 1px 5px rgba(0, 0, 0, 0.3);
-  max-height: var(--toastify-toast-max-height);
-  font-family: 'Poppins', sans-serif;
-}
-
-.form{
-  display: flex;
-  flex-direction: column;
-  gap: 1em;
-  padding: 1em;
+/* Inputs & Forms */
+input, textarea {
   width: 100%;
-
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid var(--color-primary);
+  font-size: 0.9rem; /* Smaller input text */
+  font-weight: 400;
+  transition: all 0.3s ease-in-out;
 }
 
+input:focus, textarea:focus {
+  border: 2px solid var(--color-primary-hover);
+  outline: none;
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.08);
+}
 
+/* Responsive Adjustments */
+@media screen and (max-width: 480px) {
+  html {
+    font-size: 12px; /* Further reduced for mobile */
+  }
+
+  .form {
+    padding: 1em;
+  }
+
+  input, textarea {
+    font-size: 0.85rem;
+    padding: 8px;
+  }
+}
