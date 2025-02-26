@@ -7,6 +7,7 @@ type Library struct {
 	OwnerID          uint      `gorm:"not null" json:"owner_id"`
 	Name             string    `gorm:"not null" json:"name"`
 	Address          string    `json:"address"`
+	City			 string   `gorm:"not null" json:"city"`
 	SubscriptionType string    `gorm:"not null" json:"subscription_type"`
 	Rate             uint      `gorm:"default:0;not null" json:"rate"`  // Corrected
 	CreatedAt        time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`

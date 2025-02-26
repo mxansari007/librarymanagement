@@ -53,7 +53,7 @@ const LibrarianHome = () => {
         <>
         <div className={styles.header}>
             <h1>Dashboard</h1>
-           <p>{libraryName}</p>
+           <p className='chip'>{libraryName}</p>
         </div>
 
         <div className={styles.status_area}>

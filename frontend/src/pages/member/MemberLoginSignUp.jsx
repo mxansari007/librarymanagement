@@ -1,19 +1,94 @@
-import React, { useState } from 'react'
+import React, { useState,useEffect,useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom' // Changed to useNavigate hook
 import libraryImage from '../../assets/library-bg.png'
 import styles from '../../styles/OwnerLoginSignUp.module.css'
+import ss from '../../styles/SelectLib.module.css'
 import Button from '../../components/Button'
 import Input from '../../components/Input'
 import { useForm } from 'react-hook-form'
 import { DevTool } from '@hookform/devtools'
 import { toast, ToastContainer } from "react-toastify";
+import Select from '../../components/Select'
 import axios from 'axios'
+import { debounce } from 'lodash';
 
 const MemberLoginSignUp = () => {
   const navigate = useNavigate(); // Properly initialize the navigate hook
   const [pageState, setPageState] = useState('login')
-  
+  const [selectLib, setSelectLib] = useState(false);
+  const [libId, setLibId] = useState(null); 
+  const [searchText, setSearchText] = useState('');
+  const [libraries, setLibraries] = useState([]);
+  const [showDropdown, setShowDropdown] = useState(false);
 
+  // const handleSearchChange = (event) => {
+  //   setSearchText(event.target.value);
+  //   setShowDropdown(event.target.value.length > 0); // Show dropdown when there's input
+  // };
+
+
+// SET DROP DOWN TO FALSE ON ESC BUTTON PRESS
+
+useEffect(() => {
+  const handleEsc = (event) => {
+    if (event.key === 'Escape') {
+      setShowDropdown(false);
+    }
+  };
+  document.addEventListener('keydown', handleEsc);
+  return () => {
+    document.removeEventListener('keydown', handleEsc);
+  };
+}, []);
+
+// set drop down to false on outside click search input
+
+const selectLibRef = useRef(null);
+
+
+
+useEffect(() => {
+  const handleClickOutside = (event) => {
+    if (selectLibRef.current && !selectLibRef.current.contains(event.target)) {
+      setShowDropdown(false);
+    }
+  };
+
+  document.addEventListener('mousedown', ()=>setTimeout(()=>handleClickOutside,500));
+  return () => {
+    document.removeEventListener('mousedown', handleClickOutside);
+  };
+}, []);
+
+  // if no text in search input, hide dropdown
+  useEffect(() => {
+    if (searchText.length === 0) {
+      setShowDropdown(false);
+    }
+  }, [searchText]);
+
+  // Debounce search input to optimize performance
+  const debouncedFetchLibraries = debounce((searchText) => {
+    if (searchText.length > 2) {
+      axios.get(
+        `${import.meta.env.VITE_BASE_URL}/owner/libraries/search?search=${searchText}`
+      ).then((response) => {
+        setLibraries(response.data.libraries);
+      });
+    } else {
+      setLibraries([]);
+    }
+  }, 500);
+
+  useEffect(() => {
+    debouncedFetchLibraries(searchText);
+  }, [searchText]);
+
+  const handleLibrarySelect = (library) => {
+    setSelectLib(false);
+    setPageState('confirm');
+    setValue('libraryId', library.id);
+  };
 
   const { register, handleSubmit, formState: { errors } } = useForm({
     defaultValues: {
@@ -30,10 +105,14 @@ const MemberLoginSignUp = () => {
       email: "",
       password: "",
       adhaarNumber: "",
-      aadhaar_image: null
+      aadhaar_image: null,
+      library_id: "",
     },
     mode: 'all'
   })
+
+
+
 
   const notifyError = (msg) => toast.error(msg);
   const notifySuccess = (msg) => toast.success(msg);
@@ -44,12 +123,14 @@ const MemberLoginSignUp = () => {
     };
 
 const onSubmitSignUp = async (data) => {
+  console.log("Sign Up Data:", data);
   const formData = new FormData();
   formData.append("firstname", data.firstName);
   formData.append("lastname", data.lastName);
   formData.append("email", data.email);
   formData.append("password", data.password);
   formData.append("aadhaar_number", Number(data.adhaarNumber));
+  formData.append("library_id", Number(data.library_id));
   
   if (data.aadhaar_image) {
     formData.append("aadhaar_image", data.aadhaar_image);
@@ -64,32 +145,70 @@ const onSubmitSignUp = async (data) => {
       notifySuccess("Signup successful! Please login.");
       setPageState("login");
     }
+    setSelectLib(false);
+    navigate('/member/pending')
   } catch (error) {
     notifyError(error.response?.data?.error || "Signup failed.");
   }
 };
 
+
+
   const onSubmitLogin = async (data) => {
     try {
       const res = await axios.post(import.meta.env.VITE_BASE_URL + "/user/login", {
         email: data.email,
-        password: data.password,
+        password_hash: data.password,
       }, { withCredentials: true });
 
       if (res.status === 200) {
+        
         localStorage.setItem("member_token", res.data.token);
         localStorage.setItem("user", JSON.stringify(res.data.user));
         navigate("/member/dashboard"); // Using the hook correctly
       }
     } catch (error) {
+      if (error.response.data.verified == false) {
+        notifyError("Your account has not been verified yet. Please check your email for verification link.");
+        localStorage.setItem("pending_member", data.email);
+        navigate("/member/pending");
+        return;
+      }
       notifyError("Login failed. Check your credentials.");
+
     }
   };
 
+  const handleSearchChange = (event) => {
+    setSearchText(event.target.value);
+    fetchLibraryData(event.target.value); // Call debounced function
+  };
+
+
+  // use controller 
+  const fetchLibraryData = debounce(async (query) => {
+    if (query) {
+      try {
+        const response = await axios.post(import.meta.env.VITE_BASE_URL + '/open/libraries', {
+          name: "",  // Ensure `name` is included, even if empty
+          city: query // Send city as per backend expectations
+        });
+  
+        setLibraries(response.data.data);
+        setShowDropdown(true);
+        
+      } catch (error) {
+        console.error('Error fetching library data:', error);
+      }
+    }
+  }, 500);
+  
+
   return (
-    <div className={styles.bg_style}>
-      <div className={styles.bg_black_overlay_screen}></div>
+    <>
+    {!selectLib ?<div className={styles.bg_style}>
       <div className={styles.container}>
+      <div className={styles.bg_black_overlay_screen}></div>
         <div className={styles.flex_container}>
           <div className={styles.heading}>
             <h1>Library Management System</h1>
@@ -166,7 +285,7 @@ const onSubmitSignUp = async (data) => {
                     }}
                     type="password" placeholder="Confirm Password" 
                   />
-                    <Button type="submit">Sign Up</Button>
+                    <Button onClick={()=>setSelectLib(true)}>Sign Up</Button>
                   <p>Already have an account? <a onClick={() => setPageState('login')}>Login</a></p>
                 </form>
               </div>
@@ -203,11 +322,83 @@ const onSubmitSignUp = async (data) => {
                 </form>
               </div>
             )}
-          </div>
+          </div> 
+        </div>
+        </div>
+      </div>:
+      <div className={ss.bg_style}>
+      <div className={ss.bg_black_overlay_screen}></div>
+      <div className={ss.container}>
+        <h2 className={ss.title}>Select Your Library</h2>
+        <Select
+          display="Search By"
+          options={[ 'City','Library Name']}
+          onChange={setSelectLib}
+          className={ss.selectBox}
+        />
+        <div className={ss.searchWrapper}>
+          <Input
+            type="text"
+            ref={selectLibRef}
+            placeholder="Search Library"
+            value={searchText}
+            onChange={handleSearchChange}
+            className={ss.searchInput}
+          />
+          {showDropdown && (
+            <div className={ss.dropdown}>
+          {
+            libraries.length > 0 ? (
+              libraries
+                .filter((library) =>
+                  library.name.toLowerCase().includes(searchText.toLowerCase()) ||
+                  library.city.toLowerCase().includes(searchText.toLowerCase())
+                )
+                .map((library) => (
+                  <div
+                    key={library.id}
+                    onClick={() => {
+                      console.log("Selected library:", library);
+                      setValue("library_id", library.id);  // Ensure value is set in the form
+                      setTimeout(() => {
+                        setShowDropdown(false);
+                      }, 500);
+                    }}
+                    
+                    className={ss.dropdownItem}
+                  >
+                    {library.name}, {library.city}
+                  </div>
+                ))
+            ) : (
+              <div className={ss.noResults}>No libraries found</div>
+            )
+          }
+
+            </div>
+          )}
+        </div>
+        <Button
+          onClick={signUpHandleSubmit(onSubmitSignUp)}
+          className={ss.continueButton}
+        >
+          Continue
+        </Button>
+
+        <div className={ss.result_area}>
+          {/* Results will go here */}
         </div>
       </div>
-      <ToastContainer /> {/* Added ToastContainer for notifications */}
     </div>
+    }         
+    
+
+
+
+
+
+      <ToastContainer /> {/* Added ToastContainer for notifications */}
+    </>
   )
 }
 

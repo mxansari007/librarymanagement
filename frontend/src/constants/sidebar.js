@@ -46,7 +46,7 @@ const librarianOptions = [
     {
         id: 5,
         name:"Manage Members",
-        link:"/librarian/dashboard/admin",
+        link:"/librarian/dashboard/members",
         icon:faUsers
     },
         {

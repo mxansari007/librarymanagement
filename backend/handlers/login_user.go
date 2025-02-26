@@ -51,6 +51,14 @@ func LoginUser(c *gin.Context) {
 		libraryID = &librarian.LibraryID
 	}
 
+	if existingUser.Role == "member" && !existingUser.IsVerified {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error":    "Account is not verified",
+			"verified": false,
+		})
+		return
+	}
+
 	// Generate JWT token with library ID if librarian
 	token, err := utils.CreateToken(existingUser.ID, existingUser.Role, libraryID)
 	if err != nil {
@@ -59,7 +67,7 @@ func LoginUser(c *gin.Context) {
 	}
 
 	// Set the correct cookie name based on role
-	cookieName := "token"
+	cookieName := "member_token"
 	if existingUser.Role == "owner" {
 		cookieName = "owner_token"
 	} else if existingUser.Role == "librarian" {

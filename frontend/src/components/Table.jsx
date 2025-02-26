@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import styles from "../styles/Table.module.css";
 import Button from "../components/Button";
 
-const Table = ({ Data = [], ColumnDef = [], buttons = [], imageKey = "" }) => {
+const Table = ({ Data = [], ColumnDef = [], buttons = [], imageKey = "" , imageName }) => {
   const [columnDef, setColumnDef] = useState([]);
   const [data, setTableData] = useState([]);
 
@@ -23,7 +23,7 @@ const Table = ({ Data = [], ColumnDef = [], buttons = [], imageKey = "" }) => {
             <th key={index}>{col.header}</th>
           ))}
           {buttons.length > 0 && <th>Actions</th>}
-          {imageKey && <th>Image</th>}
+          {imageKey && <th>{imageName}</th>}
         </tr>
       </thead>
       <tbody>

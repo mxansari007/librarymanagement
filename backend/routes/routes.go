@@ -14,9 +14,16 @@ func SetupRoutes(router *gin.Engine) {
 	{
 		user.POST("/login", handlers.LoginUser)
 	}
+	
+	open := router.Group("/open")
+	{
+		open.POST("/libraries", handlers.SearchLibraries(db.DB))
+		open.GET("/verify/:email", handlers.IsVerified(db.DB))
+	}
 
 	owner := router.Group("/owner")
 	{
+		owner.GET("/fetch-members/:library_id/:status", handlers.FetchMembers(db.DB))
 		owner.POST("/signup", handlers.SignupOwner(db.DB)) // ✅ Corrected
 		owner.Use(middlewares.AuthMiddleware("owner"))            // ✅ Middleware should be applied before routes
 		owner.POST("/create-library", handlers.CreateLibrary(db.DB))
@@ -26,9 +33,10 @@ func SetupRoutes(router *gin.Engine) {
 		owner.POST("/create-librarian",handlers.CreateLibrarian(db.DB))
 		owner.GET("/librarians", handlers.GetAllLibrarians(db.DB))
 	}
-
+	
 	librarian := router.Group("/librarian")
 	{
+		librarian.GET("/fetch-members/:library_id", handlers.FetchMembers(db.DB))
 		librarian.Use(middlewares.AuthMiddleware("librarian"))
         librarian.POST("/add-book", handlers.CreateBook(db.DB))
 		librarian.GET("/books", handlers.GetAllBooks(db.DB))

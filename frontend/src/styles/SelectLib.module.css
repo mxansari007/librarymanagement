@@ -1,0 +1,195 @@
+.bg_style {
+    background-image: url('../assets/bg-lib.jpg');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-position: center;
+    position: relative;
+    height: 100vh;
+    overflow: hidden;
+  }
+  
+  .bg_black_overlay_screen {
+    background-color: rgba(0, 0, 0, 0.4); /* Darker overlay for better contrast */
+    height: 100vh;
+    position: absolute;
+    width: 100%;
+    left: 0;
+    top: 0;
+    z-index: 5;
+    transition: background-color 0.3s ease-in-out;
+  }
+  
+  .container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    z-index: 10;
+    position: absolute;
+    width: 100%;
+    left: 0;
+    top: 0;
+    height: 100vh;
+    padding: 20px;
+    text-align: center;
+    box-sizing: border-box;
+  }
+  
+  .title {
+    font-size: 2rem;
+    color: var(--color-primary);
+    margin-bottom: 30px;
+    font-weight: 600;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    background-color: rgba(255, 255, 255, 0.63); /* Gentle background color */
+    padding: 20px 30px; /* Padding around the text */
+    border-radius: 12px; /* Rounded corners */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Soft shadow for depth */
+    display: inline-block; /* To make background fit only the heading */
+  }
+  
+  
+  .selectBox {
+    width: 70%;
+    max-width: 400px;
+    padding: 12px;
+    margin-bottom: 20px;
+    border-radius: 6px;
+    border: 1px solid var(--color-border);
+    /* color: var(--color-primary); */
+    font-size: 1rem;
+    transition: all 0.3s ease-in-out;
+  }
+  
+  .selectBox:hover {
+    border-color: var(--color-primary);
+  }
+  
+  .selectBox:focus {
+    border-color: var(--color-primary-click);
+    box-shadow: 0 0 10px var(--color-primary);
+    outline: none;
+  }
+  
+  .searchInput {
+    width: 70%;
+    max-width: 400px;
+    padding: 12px;
+    margin-bottom: 20px;
+    border-radius: 6px;
+    border: 1px solid var(--color-border);
+    font-size: 1rem;
+    transition: all 0.3s ease-in-out;
+  }
+  
+  .searchInput:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 10px var(--color-primary);
+    outline: none;
+  }
+  
+  .continueButton {
+    background-color: var(--color-primary);
+    color: white;
+    padding: 12px 30px;
+    font-size: 1.1rem;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease-in-out;
+    margin-top: 20px;
+  }
+  
+  .continueButton:hover {
+    background-color: var(--color-primary-hover);
+  }
+  
+  .continueButton:focus {
+    background-color: var(--color-primary-click);
+    outline: none;
+  }
+  
+  .result_area {
+    margin-top: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    gap: 15px;
+    /* Results will be displayed here */
+  }
+  
+  @media (max-width: 600px) {
+    .selectBox, .searchInput {
+      width: 90%;
+    }
+  }
+  
+
+  .searchWrapper {
+    position: relative; /* Needed to position the dropdown relative to the input */
+    width: 70%;
+    max-width: 400px;
+    margin-bottom: 20px;
+  }
+  
+  .searchInput {
+    width: 100%;
+    padding: 12px;
+    border-radius: 6px;
+    border: 1px solid var(--color-border);
+    font-size: 1rem;
+    transition: all 0.3s ease-in-out;
+  }
+  
+  .searchInput:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 10px var(--color-primary);
+    outline: none;
+  }
+  
+  .dropdown {
+    position: absolute;
+    top: 100%; /* Positions below the input */
+    left: 0;
+    width: 100%;
+    background-color: white;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Soft shadow for depth */
+    max-height: 200px; /* Maximum height */
+    overflow-y: auto; /* Scroll if the items exceed max height */
+    margin-top: -15px;
+    z-index: 10;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0s 0.3s;
+  }
+  
+  .searchWrapper .dropdown {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.3s ease, visibility 0s 0s;
+  }
+  
+  .dropdownItem {
+    padding: 10px;
+    font-size: 1rem;
+    color: var(--color-neutral);
+    cursor: pointer;
+    text-align: left;
+    transition: background-color 0.3s ease;
+  }
+  
+  .dropdownItem:hover {
+    background-color: var(--color-primary-faded);
+    color: var(--color-primary);
+  }
+  
+  @media (max-width: 600px) {
+    .selectBox, .searchInput {
+      width: 90%;
+    }
+  }
+  

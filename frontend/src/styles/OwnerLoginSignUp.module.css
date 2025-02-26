@@ -87,6 +87,7 @@
         color: var(--color-primary-hover);
         /* Subtle hover feedback */
     }
+    z-index: 15;
 }
 
 .heading h1 {
@@ -262,3 +263,5 @@ form {
         /* Cap width for balance */
     }
 }
+
+

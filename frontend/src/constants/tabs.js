@@ -13,5 +13,18 @@ const ownerSettingData = [
 
 ]
 
+const memebersData = [
+    {
+        id: 1,
+        name: "Unverified Members",
+    },
+    {
+        id: 2,
+        name: "Verified Members"
+    }
+]
+
+export {memebersData};
+
 
 export default ownerSettingData

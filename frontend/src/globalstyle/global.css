@@ -146,3 +146,46 @@ input:focus, textarea:focus {
     padding: 8px;
   }
 }
+
+
+.chip{
+  background-color: var(--color-primary);
+  color: white;
+  border-radius: 10px;
+  padding: 5px 10px;
+  margin: 0 5px 5px 0;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+
+.container{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding: 2em 2em;
+}
+
+
+.container{
+    h1{
+        font-weight: bold;
+        color: var(--color-primary)
+    }
+}
+
+
+.container{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding: 2em 2em;
+}
+
+
+.container{
+    h1{
+        font-weight: bold;
+        color: var(--color-primary)
+    }
+}

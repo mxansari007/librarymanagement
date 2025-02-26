@@ -8,6 +8,8 @@ import (
 	"github.com/mxansari007/librarymanagement/models"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
+	"strconv"
+	"log"
 )
 
 func SignupOwner(db *gorm.DB) gin.HandlerFunc {
@@ -100,8 +102,9 @@ func CreateLibrary(db *gorm.DB) gin.HandlerFunc {
         var req struct {
             Name             string `json:"name" binding:"required"`
             Address          string `json:"address"`
-            SubscriptionType string `json:"subscription_type" binding:"required,oneof=free paid"`
-			 Rate             uint   `json:"rate,omitempty"`
+			City             string   `json:"city" binding:"required"`
+			SubscriptionType string `json:"subscription_type" binding:"required,oneof=free paid"`
+			Rate             uint   `json:"rate,omitempty"`
         }
 
 		// Bind the request body to the struct
@@ -131,7 +134,9 @@ func CreateLibrary(db *gorm.DB) gin.HandlerFunc {
             OwnerID:          ownerID,
             Name:             req.Name,
             Address:          req.Address,
-            SubscriptionType: req.SubscriptionType,
+            City:             req.City,
+			SubscriptionType: req.SubscriptionType,
+			Rate:             req.Rate,
         }
 
         if err := db.Create(&library).Error; err != nil {
@@ -202,6 +207,7 @@ func UpdateLibrary(db *gorm.DB) gin.HandlerFunc {
 		var req struct {
 			Name             *string  `json:"name"`
 			Address          *string  `json:"address"`
+			City             *string  `json:"city"`
 			SubscriptionType *string  `json:"subscription_type"`
 			Rate             *uint 	`json:"rate" binding:"required" `
 		}
@@ -228,6 +234,9 @@ func UpdateLibrary(db *gorm.DB) gin.HandlerFunc {
 		if req.Rate != nil {
 			updateData["rate"] = *req.Rate
 		}
+		if req.City != nil {
+            updateData["city"] = *req.City
+        }
 
 		// Only update if there are fields to update
 		if len(updateData) == 0 {
@@ -373,4 +382,56 @@ func GetAllLibrarians(db *gorm.DB) gin.HandlerFunc {
             "librarians": response,
         })
     }
+}
+
+// fetch all users with role as members based on library ID and isVerified status
+
+
+
+// FetchMembers retrieves members based on library ID and optional verification status
+func FetchMembers(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		// Extract and convert library ID
+		libraryID, err := strconv.Atoi(c.Param("library_id"))
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid library ID"})
+			return
+		}
+
+		// Extract optional verification status
+		isVerifiedStr := c.Query("is_verified")
+		var members []models.User
+		var query *gorm.DB
+
+		// Base query with JOIN
+		query = db.Table("users").
+			Select("users.*").
+			Joins("JOIN library_memberships ON library_memberships.member_id = users.id").
+			Where("library_memberships.library_id = ?", libraryID)
+
+		// Apply filter if verification status is provided
+		if isVerifiedStr != "" {
+			isVerified, err := strconv.ParseBool(isVerifiedStr)
+			if err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid verification status"})
+				return
+			}
+			query = query.Where("users.is_verified = ?", isVerified)
+		}
+
+		// Execute query
+		result := query.Find(&members)
+
+		// Handle database errors
+		if result.Error != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error fetching members"})
+			return
+		}
+
+		// Log retrieval details
+		log.Printf("Members retrieved: Library ID: %d, Count: %d, IsVerified: %s", libraryID, len(members), isVerifiedStr)
+
+		// Return members data
+		c.JSON(http.StatusOK, gin.H{"data": members})
+	}
 }

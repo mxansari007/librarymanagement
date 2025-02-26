@@ -48,7 +48,7 @@ const OwnerManageLibrary = () => {
     control: editControl,
     formState: { errors: editErrors },
   } = useForm({
-    defaultValues: { libraryName: "", libraryAddress: "", subscription_type: "", rate: "" },
+    defaultValues: { libraryName: "", libraryAddress: "", city:"",subscription_type: "", rate: "" },
     mode: "all",
   });
 
@@ -87,6 +87,7 @@ const OwnerManageLibrary = () => {
         {
           name: data.libraryName,
           address: data.libraryAddress,
+          city: data.city,
           subscription_type: data.subscription_type,
           rate: data.subscription_type === "paid" ? Number(data.rate) : 0,
         },
@@ -206,6 +207,15 @@ const OwnerManageLibrary = () => {
               validation={{ required: "Library Address is required" }}
               type="text"
               placeholder="Library Address"
+            />
+
+            <Input
+              register={register}
+              error={errors.city}
+              name="city"
+              validation={{ required: "City is required" }}
+              type="text"
+              placeholder="City"
             />
 
             <div className={styles.radio_group}>

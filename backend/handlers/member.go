@@ -18,11 +18,12 @@ func SignupMember(db *gorm.DB) gin.HandlerFunc {
 			FirstName     string `form:"firstname" binding:"required"`
 			LastName      string `form:"lastname" binding:"required"`
 			Email         string `form:"email" binding:"required,email"`
-			Password      string `form:"password" binding:"required,min=8"`
+			PasswordHash      string `form:"password" binding:"required,min=8"`
 			AadhaarNumber string `form:"aadhaar_number" binding:"required"`
+			LibraryID     uint   `form:"library_id" binding:"required"`
 		}
 
-		// Bind form data (excluding the file)
+		// Bind form data
 		if err := c.ShouldBind(&req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid form data: " + err.Error()})
 			return
@@ -31,36 +32,40 @@ func SignupMember(db *gorm.DB) gin.HandlerFunc {
 		// Retrieve the Aadhaar image file
 		file, header, err := c.Request.FormFile("aadhaar_image")
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": "Failed to read Aadhaar image: " + err.Error(),
-				"debug": "Ensure the file is sent with key 'aadhaar_image'",
-			})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to read Aadhaar image: " + err.Error()})
 			return
 		}
 		defer file.Close()
 
-		// Validate file type (optional, but recommended)
+		// Validate file type
 		if header.Header.Get("Content-Type") != "image/png" && header.Header.Get("Content-Type") != "image/jpeg" {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid file type. Only PNG and JPEG are allowed"})
 			return
 		}
 
-		// Read file content
+		// Read file content and encode to base64
 		fileBytes, err := ioutil.ReadAll(file)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to process Aadhaar image: " + err.Error()})
 			return
 		}
-
-		// Encode file to base64
 		encodedImage := base64.StdEncoding.EncodeToString(fileBytes)
 
 		// Hash the password
-		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.PasswordHash), bcrypt.DefaultCost)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password: " + err.Error()})
 			return
 		}
+
+		// Start a database transaction
+		tx := db.Begin()
+		defer func() {
+			if r := recover(); r != nil {
+				tx.Rollback()
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Unexpected error occurred"})
+			}
+		}()
 
 		// Create the member
 		member := models.User{
@@ -75,15 +80,6 @@ func SignupMember(db *gorm.DB) gin.HandlerFunc {
 			CreatedAt:      time.Now(),
 		}
 
-		// Start a database transaction
-		tx := db.Begin()
-		defer func() {
-			if r := recover(); r != nil {
-				tx.Rollback()
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "Unexpected error occurred"})
-			}
-		}()
-
 		// Save the member
 		if err := tx.Create(&member).Error; err != nil {
 			tx.Rollback()
@@ -91,12 +87,38 @@ func SignupMember(db *gorm.DB) gin.HandlerFunc {
 			return
 		}
 
+		// Check if the library exists
+		var library models.Library
+		if err := db.First(&library, req.LibraryID).Error; err != nil {
+			tx.Rollback()
+			c.JSON(http.StatusNotFound, gin.H{"error": "Library not found"})
+			return
+		}
+
+		// Create a membership for the user
+		membership := models.LibraryMembership{
+			MemberID:         member.ID,
+			LibraryID:        req.LibraryID,
+			IsPaidMembership: false, // Defaulting to free membership; modify as needed
+			StartDate:        time.Now(),
+			EndDate:          time.Now().AddDate(1, 0, 0), // 1-year validity
+			CreatedAt:        time.Now(),
+		}
+
+		// Save the membership
+		if err := tx.Create(&membership).Error; err != nil {
+			tx.Rollback()
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create membership: " + err.Error()})
+			return
+		}
+
 		// Commit the transaction
 		tx.Commit()
 
 		c.JSON(http.StatusCreated, gin.H{
-			"message":   "Member created successfully",
-			"member_id": member.ID,
+			"message":      "Member signed up and subscribed to library successfully",
+			"member_id":    member.ID,
+			"membership_id": membership.ID,
 		})
 	}
 }
