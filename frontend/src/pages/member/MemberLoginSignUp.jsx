@@ -165,10 +165,11 @@ const onSubmitSignUp = async (data) => {
         
         localStorage.setItem("member_token", res.data.token);
         localStorage.setItem("user", JSON.stringify(res.data.user));
+        localStorage.setItem("route", "Dashboard");
         navigate("/member/dashboard"); // Using the hook correctly
       }
     } catch (error) {
-      if (error.response.data.verified == false) {
+      if (error.response.data.verified == false || error.response.data.rejected == true) {
         notifyError("Your account has not been verified yet. Please check your email for verification link.");
         localStorage.setItem("pending_member", data.email);
         navigate("/member/pending");

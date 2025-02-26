@@ -41,6 +41,8 @@ func SetupRoutes(router *gin.Engine) {
         librarian.POST("/add-book", handlers.CreateBook(db.DB))
 		librarian.GET("/books", handlers.GetAllBooks(db.DB))
 		librarian.GET("/books/:book_id", handlers.GetBookByID(db.DB))
+		librarian.GET("/approve-member/:email", handlers.ChangeStatus(db.DB))
+		librarian.POST("/reject-member/:email", handlers.DeleteMember(db.DB))
 
 	}
 

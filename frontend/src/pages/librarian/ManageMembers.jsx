@@ -1,73 +1,63 @@
 import PageHeader from "../../components/PageHeader";
-import styles from '../../styles/OwnerLib.module.css'
+import styles from '../../styles/OwnerLib.module.css';
 import Button from "../../components/Button";
 import Select from "../../components/Select";
 import Table from "../../components/Table";
 import Pagination from "../../components/Pagination";
 import Input from "../../components/Input";
 import { useForm } from "react-hook-form";
-import { DevTool } from '@hookform/devtools'
-import axios from 'axios'
-import { toast, ToastContainer } from 'react-toastify';
+import { DevTool } from '@hookform/devtools';
+import axios from 'axios';
+import { toast } from 'react-toastify';
 import Modal from "../../components/Modal";
 import { useState, useEffect } from "react";
 import Tabs from "../../components/Tabs";
-import {memebersData} from "../../constants/tabs"
-
-
-
-const libraryColDef = [
-    { header: 'Book ID', key: 'id' },
-    { header: 'Title', key: 'title' },
-    { header: 'Author', key: 'author' },
-    { header: 'Publisher', key: 'publisher' },
-    { header: 'Available Copies', key: 'available_copies' },
-];
-
+import { memebersData } from "../../constants/tabs";
 
 const membersDef = [
     { header: 'Member ID', key: 'id' },
     { header: 'First Name', key: 'first_name' },
-    {header: 'Last Name', key: 'last_name' },
+    { header: 'Last Name', key: 'last_name' },
     { header: 'Email', key: 'email' },
     { header: 'Phone Number', key: 'contact_number' },
 ];
 
 const ManageMembers = () => {
-    const [modalState, setModalState] = useState(false);
+    const [modalState, setModalState] = useState(false); // For Add Book modal
+    const [rejectModalState, setRejectModalState] = useState(false); // For Reject modal
     const [allBooks, setAllBooks] = useState([]);
     const [unverifiedMembers, setUnverifiedMembers] = useState([]);
     const [verifiedMembers, setVerifiedMembers] = useState([]);
     const [tabState, setTabState] = useState(1);
+    const [memberToReject, setMemberToReject] = useState(null); // Store member to reject
+
+    // Form for rejection reason
+    const { register: registerReject, handleSubmit: handleRejectSubmit, reset: resetReject, formState: { errors: rejectErrors } } = useForm({
+        defaultValues: { reason: "" },
+        mode: "all",
+    });
 
     const fetchingUnverifiedMembers = async () => {
-
         const user = JSON.parse(localStorage.getItem("user"));
-        try{
+        try {
             const res = await axios({
-                method:"GET",
+                method: "GET",
                 url: `${import.meta.env.VITE_BASE_URL}/librarian/fetch-members/${user.library_id}?is_verified=false`,
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem("librarian_token")}`,
                 },
-                withCredentials: true, // Ensures cookies are sent if used
-            })
-
-            console.log("Response:", res.data);
+                withCredentials: true,
+            });
             setUnverifiedMembers(res.data.data);
+        } catch (error) {
+            console.error("Fetching unverified members error:", error);
+            toast.error("Error fetching unverified members");
         }
-
-    catch(error){
-        console.error("Fetching unverified members error:", error);
-
-    }
-    }
-
+    };
 
     useEffect(() => {
         fetchingUnverifiedMembers();
-
-    }, [])
+    }, []);
 
     const { register, control, formState: { errors }, handleSubmit, setValue } = useForm({
         defaultValues: {
@@ -78,28 +68,22 @@ const ManageMembers = () => {
             total_copies: "",
             available_copies: "",
             version: "",
-            book_image: null
+            book_image: null,
         },
         mode: "all",
     });
 
     const fetchingBooks = async () => {
-
         const token = localStorage.getItem("librarian_token");
-
         try {
-
             const res = await axios({
                 method: "GET",
                 url: `${import.meta.env.VITE_BASE_URL}/librarian/books`,
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
-                withCredentials: true, // Ensures cookies are sent if used
+                withCredentials: true,
             });
-    
-            console.log("Response:", res);
-    
             if (res.status === 200) {
                 setAllBooks(res.data.data);
             }
@@ -108,16 +92,14 @@ const ManageMembers = () => {
             toast.error("Error fetching books");
         }
     };
-    
 
     useEffect(() => {
         fetchingBooks();
     }, []);
 
-
     const handleBookImage = (e) => {
         const file = e.target.files[0];
-        setValue("book_image", file);  // Set file directly (multipart/form-data)
+        setValue("book_image", file);
     };
 
     const AddBook = async (data) => {
@@ -135,12 +117,12 @@ const ManageMembers = () => {
             }
 
             const res = await axios.post(
-                import.meta.env.VITE_BASE_URL + "/librarian/add-book",
+                `${import.meta.env.VITE_BASE_URL}/librarian/add-book`,
                 formData,
                 {
                     headers: {
                         Authorization: `Bearer ${localStorage.getItem("librarian_token")}`,
-                        "Content-Type": "multipart/form-data"
+                        "Content-Type": "multipart/form-data",
                     },
                     withCredentials: true,
                 }
@@ -155,21 +137,64 @@ const ManageMembers = () => {
         }
     };
 
+    const approveMember = async (row) => {
+        try {
+            const res = await axios({
+                method: "GET",
+                url: `${import.meta.env.VITE_BASE_URL}/librarian/approve-member/${row.email}`,
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("librarian_token")}`,
+                },
+                withCredentials: true,
+            });
+            toast.success("Member approved successfully");
+            fetchingUnverifiedMembers();
+        } catch (error) {
+            console.error("Error approving member:", error);
+            toast.error(error.response?.data?.error || "Error approving member");
+        }
+    };
+
+    const openRejectModal = (row) => {
+        setMemberToReject(row); // Store the member to reject
+        setRejectModalState(true); // Open the reject modal
+    };
+
+    const rejectMember = async (data) => {
+        if (!memberToReject) return;
+
+        try {
+            const res = await axios({
+                method: "POST",
+                url: `${import.meta.env.VITE_BASE_URL}/librarian/reject-member/${memberToReject.email}`,
+                data: { reason: data.reason }, // Send reason in request body
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("librarian_token")}`,
+                    "Content-Type": "application/json", // JSON content type
+                },
+                withCredentials: true,
+            });
+            toast.success("Member rejected successfully");
+            setRejectModalState(false);
+            resetReject(); // Clear the form
+            setMemberToReject(null); // Clear the selected member
+            fetchingUnverifiedMembers();
+        } catch (error) {
+            console.error("Error rejecting member:", error);
+            toast.error(error.response?.data?.error || "Error rejecting member");
+        }
+    };
+
     return (
         <>
             <PageHeader title="Manage Books" />
-
             <div className={styles.container}>
-                
                 <div className={styles.tabs_area}>
-
-                    <Tabs tabState={tabState} setTabState={setTabState}  data={memebersData}/>
+                    <Tabs tabState={tabState} setTabState={setTabState} data={memebersData} />
                 </div>
-
-
                 <div className={styles.table_area}>
                     <div className={styles.table_heading}>
-                        <h3>{tabState==1?'Unverified Members':'Verified Members'}</h3>
+                        <h3>{tabState === 1 ? 'Unverified Members' : 'Verified Members'}</h3>
                         <div className={styles.filter_area}>
                             <Select display="Search By" options={['Library Name', 'City', 'State']} />
                             <div className={styles.search_area}>
@@ -178,9 +203,16 @@ const ManageMembers = () => {
                             </div>
                         </div>
                     </div>
-
-                    <Table ColumnDef={membersDef} Data={unverifiedMembers} imageName="Aadhaar" imageKey="aadhaar_image_url"/>
-
+                    <Table
+                        ColumnDef={membersDef}
+                        buttons={[
+                            { name: "Approve", onClick: approveMember },
+                            { name: "Reject", onClick: openRejectModal },
+                        ]}
+                        Data={unverifiedMembers}
+                        imageName={["Aadhaar"]}
+                        imageKey={["aadhaar_image_url"]}
+                    />
                     <div className={styles.pagination_area}>
                         <Pagination />
                     </div>
@@ -190,7 +222,6 @@ const ManageMembers = () => {
             {/* Modal for Adding Book */}
             <Modal label="Add Book" modalState={modalState} setModalState={setModalState}>
                 <form onSubmit={handleSubmit(AddBook)}>
-
                     <Input
                         register={register}
                         error={errors.title}
@@ -199,7 +230,6 @@ const ManageMembers = () => {
                         type="text"
                         placeholder="Title"
                     />
-
                     <Input
                         register={register}
                         error={errors.author}
@@ -208,7 +238,6 @@ const ManageMembers = () => {
                         type="text"
                         placeholder="Author"
                     />
-
                     <Input
                         register={register}
                         error={errors.publisher}
@@ -217,7 +246,6 @@ const ManageMembers = () => {
                         type="text"
                         placeholder="Publisher"
                     />
-
                     <Input
                         register={register}
                         error={errors.library_id}
@@ -226,7 +254,6 @@ const ManageMembers = () => {
                         type="number"
                         placeholder="Library ID"
                     />
-
                     <Input
                         register={register}
                         error={errors.total_copies}
@@ -235,7 +262,6 @@ const ManageMembers = () => {
                         type="number"
                         placeholder="Total Copies"
                     />
-
                     <Input
                         register={register}
                         error={errors.available_copies}
@@ -244,7 +270,6 @@ const ManageMembers = () => {
                         type="number"
                         placeholder="Available Copies"
                     />
-
                     <Input
                         register={register}
                         error={errors.version}
@@ -252,15 +277,28 @@ const ManageMembers = () => {
                         type="text"
                         placeholder="Version"
                     />
-
                     <Input
                         name="book_image"
                         onChange={handleBookImage}
                         type="file"
                         placeholder="Book Image"
                     />
-
                     <Button type="submit" variant="primary">Add Book</Button>
+                </form>
+            </Modal>
+
+            {/* Modal for Rejection Reason */}
+            <Modal label="Reject Member" modalState={rejectModalState} setModalState={setRejectModalState}>
+                <form onSubmit={handleRejectSubmit(rejectMember)}>
+                    <Input
+                        register={registerReject}
+                        name="reason"
+                        validation={{ required: "Rejection reason is required" }}
+                        type="text"
+                        placeholder="Enter reason for rejection"
+                        error={rejectErrors.reason} // Display validation errors
+                    />
+                    <Button type="submit" variant="primary">Submit Rejection</Button>
                 </form>
             </Modal>
 

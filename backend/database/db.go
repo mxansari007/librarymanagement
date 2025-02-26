@@ -37,6 +37,7 @@ func Connect(config *configs.DBConfig) {
 		&models.BookRequest{},
 		&models.BookTransaction{},
 		&models.LibraryMembership{},
+		&models.RejectedUser{},
 	)
 
 	if err != nil {

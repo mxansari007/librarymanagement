@@ -125,6 +125,12 @@ td button:hover {
     /* Gentle shadow */
 }
 
+.action_col{
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+}
+
 /* Responsive adjustments */
 @media screen and (max-width: 1024px) {
     .table {

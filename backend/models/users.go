@@ -21,6 +21,16 @@ type User struct {
 	CreatedAt       time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
 }
 
+
+type RejectedUser struct {
+    ID            uint      `gorm:"primaryKey" json:"id"`
+    Email         string    `gorm:"unique;not null" json:"email"`
+	PasswordHash  string    `gorm:"not null" json:"password_hash"`
+    Reason        string    `gorm:"not null" json:"reason"` // Why they were rejected
+    RejectedAt    time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"rejected_at"`
+}
+
+
 // BeforeCreate ensures Aadhaar details are provided only for members
 func (u *User) BeforeCreate(tx *gorm.DB) error {
 	if u.Role == "member" && (u.AadhaarNumber == nil || *u.AadhaarNumber == "") {

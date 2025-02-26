@@ -140,4 +140,95 @@ func GetBookByID(db *gorm.DB) gin.HandlerFunc {
 }
 
 
+//  make api to change status of member from isVerified to true
+// so the thing is i have two buttons in my frontend one for approve and one for reject
+// if i click on approve button then the status of the member should change to true
+// if i click on reject button then delete that member from the database which is in first delete entry from library_memberships table then delete from users table
+// so i have to make two apis for this one for approve and one for reject
 
+func ChangeStatus(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var user models.User
+		if err := db.Where("email = ?", c.Param("email")).First(&user).Error; err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+			return
+		}
+
+		if user.IsVerified {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Account is already verified"})
+			return
+		}
+
+		user.IsVerified = true
+		if err := db.Save(&user).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user"})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{"message": "Account verified"})
+	}
+}
+
+
+func DeleteMember(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		// Start transaction
+		tx := db.Begin()
+		if tx.Error != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to start transaction"})
+			return
+		}
+
+		var user models.User
+		if err := tx.Where("email = ?", c.Param("email")).First(&user).Error; err != nil {
+			tx.Rollback()
+			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+			return
+		}
+
+		// Get rejection reason from request body
+		var requestBody struct {
+			Reason string `json:"reason"`
+		}
+		if err := c.ShouldBindJSON(&requestBody); err != nil {
+			tx.Rollback()
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+			return
+		}
+
+		// Add entry to rejected_users table
+		rejectedUser := models.RejectedUser{
+			Email:      user.Email,
+			Reason:     requestBody.Reason,
+			RejectedAt: time.Now(),
+		}
+		if err := tx.Create(&rejectedUser).Error; err != nil {
+			tx.Rollback()
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to add entry to rejected users"})
+			return
+		}
+
+		// Delete user from library_memberships table
+		if err := tx.Where("member_id = ?", user.ID).Delete(&models.LibraryMembership{}).Error; err != nil {
+			tx.Rollback()
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete user from library memberships"})
+			return
+		}
+
+		// Delete user from users table
+		if err := tx.Delete(&user).Error; err != nil {
+			tx.Rollback()
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete user"})
+			return
+		}
+
+		// Commit transaction
+		if err := tx.Commit().Error; err != nil {
+			tx.Rollback()
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to commit transaction"})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{"message": "User deleted"})
+	}
+}

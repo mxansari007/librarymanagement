@@ -14,12 +14,11 @@ import (
 
 
 // create api to search library by name or by city and return the list of libraries with their details
-
 func SearchLibraries(db *gorm.DB) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		var req struct {
+    return func(c *gin.Context) {
+        var req struct {
             Name  string `json:"name"`
-            City string `json:"city"`
+            City  string `json:"city"`
         }
 
         if err := c.ShouldBindJSON(&req); err != nil {
@@ -28,22 +27,30 @@ func SearchLibraries(db *gorm.DB) gin.HandlerFunc {
         }
 
         var libraries []models.Library
-
+        
+        // Create a query scope with case-insensitive search
+        query := db.Model(&models.Library{})
+        
         if req.Name != "" && req.City != "" {
-            db.Where("name LIKE ? AND city LIKE ?", "%"+req.Name+"%", "%"+req.City+"%").Find(&libraries)
+            query.Where("LOWER(name) LIKE LOWER(?) AND LOWER(city) LIKE LOWER(?)", 
+                "%"+req.Name+"%", 
+                "%"+req.City+"%").Find(&libraries)
         } else if req.Name != "" {
-            db.Where("name LIKE ?", "%"+req.Name+"%").Find(&libraries)
+            query.Where("LOWER(name) LIKE LOWER(?)", 
+                "%"+req.Name+"%").Find(&libraries)
         } else if req.City != "" {
-            db.Where("city LIKE ?", "%"+req.City+"%").Find(&libraries)
+            query.Where("LOWER(city) LIKE LOWER(?)", 
+                "%"+req.City+"%").Find(&libraries)
         }
-		// log search and return response
 
-		log.Printf("Libraries searched: Name: %s, City: %s, Count: %d", req.Name, req.City, len(libraries))
-		c.JSON(http.StatusOK, gin.H{"data": libraries})
-
-	}
+        // Log search and return response
+        log.Printf("Libraries searched: Name: %s, City: %s, Count: %d", 
+            req.Name, 
+            req.City, 
+            len(libraries))
+        c.JSON(http.StatusOK, gin.H{"data": libraries})
+    }
 }
-
 
 
 
@@ -52,9 +59,14 @@ func SearchLibraries(db *gorm.DB) gin.HandlerFunc {
 
 
 func IsVerified(db *gorm.DB) gin.HandlerFunc {
+    return func(c *gin.Context) {
+        var rejectedUser models.RejectedUser
+        if err := db.Where("email = ?", c.Param("email")).First(&rejectedUser).Error; err == nil {
+            c.JSON(http.StatusForbidden, gin.H{"error": "User rejected", "reason": rejectedUser.Reason})
+            return
+        }
 
-	return func(c *gin.Context) {
-		var user models.User
+        var user models.User
         if err := db.Where("email = ?", c.Param("email")).First(&user).Error; err != nil {
             c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
             return

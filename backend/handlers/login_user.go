@@ -26,11 +26,31 @@ func LoginUser(c *gin.Context) {
 
 	log.Printf("Login attempt: Email: %s", loginRequest.Email)
 
+	// Check if the user is in the rejected users list
+	var rejectedUser models.RejectedUser
+	rejectedResult := db.DB.Where("email = ?", loginRequest.Email).First(&rejectedUser)
+	if rejectedResult.Error == nil {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error":    "Account is rejected",
+			"reason":   rejectedUser.Reason,
+			"rejected": true,
+		})
+		return
+	}
+
 	var existingUser models.User
 	// Check if the user exists
 	result := db.DB.Where("email = ?", loginRequest.Email).First(&existingUser)
 	if result.Error != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
+		return
+	}
+
+	if existingUser.Role == "member" && !existingUser.IsVerified {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error":    "Account is not verified",
+			"verified": false,
+		})
 		return
 	}
 
@@ -49,14 +69,6 @@ func LoginUser(c *gin.Context) {
 			return
 		}
 		libraryID = &librarian.LibraryID
-	}
-
-	if existingUser.Role == "member" && !existingUser.IsVerified {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"error":    "Account is not verified",
-			"verified": false,
-		})
-		return
 	}
 
 	// Generate JWT token with library ID if librarian
