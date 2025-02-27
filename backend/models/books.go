@@ -17,13 +17,13 @@ type Book struct {
 }
 
 type BookRequest struct {
-	ID          uint      `gorm:"primaryKey" json:"id"`
-	MemberID    uint      `gorm:"not null" json:"member_id"`
-	BookID      uint      `gorm:"not null" json:"book_id"`
-	Status      string    `gorm:"not null" json:"status"`
-	RequestedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"requested_at"`
-	ApprovedAt  time.Time `json:"approved_at"`
-	LibrarianID uint      `json:"librarian_id"`
+    ID          uint      `gorm:"primaryKey" json:"id"`
+    MemberID    uint      `gorm:"not null;uniqueIndex:idx_member_book" json:"member_id"`
+    BookID      uint      `gorm:"not null;uniqueIndex:idx_member_book" json:"book_id"`
+    Status      string    `gorm:"not null" json:"status"`
+    RequestedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"requested_at"`
+    ApprovedAt  time.Time `json:"approved_at"`
+    LibrarianID uint      `json:"librarian_id"`
 }
 
 type BookTransaction struct {

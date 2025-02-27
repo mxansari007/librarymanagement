@@ -191,7 +191,7 @@ const OwnerManageLibrary = () => {
 
         {/* Create Library Modal */}
         <Modal label="Create Library" modalState={modalState} setModalState={setModalState}>
-          <form className={styles.form} onSubmit={handleSubmit(createLibrary)}>
+          <form className={styles.form + ' form'} onSubmit={handleSubmit(createLibrary)}>
             <Input
               register={register}
               error={errors.libraryName}
@@ -263,7 +263,7 @@ const OwnerManageLibrary = () => {
 
         {/* Edit Library Modal */}
         <Modal label="Edit Library" modalState={editModalState} setModalState={setEditModalState}>
-          <form className={styles.form} onSubmit={editHandleSubmit(handleUpdate)}>
+          <form className={styles.form+ ' form'} onSubmit={editHandleSubmit(handleUpdate)}>
             <Input
               register={editRegister}
               error={editErrors.libraryName}

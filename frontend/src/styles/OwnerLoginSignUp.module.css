@@ -146,17 +146,6 @@
     }
 }
 
-form {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    margin-left: auto;
-    margin-right: auto;
-    gap: 1em;
-    /* Larger gap for clarity */
-    padding: 2.5em 3.5em;
-    /* More generous padding */
-}
 
 .buttons {
     margin-top: 15px;

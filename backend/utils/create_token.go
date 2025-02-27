@@ -22,7 +22,7 @@ func CreateToken(userID uint, role string, libraryID *uint) (string, error) {
 	}
 
 	// Add libraryID if user is a librarian
-	if role == "librarian" && libraryID != nil {
+	if role == "librarian" && libraryID != nil  || role == "member" && libraryID!= nil {
 		claims["library_id"] = *libraryID
 	}
 

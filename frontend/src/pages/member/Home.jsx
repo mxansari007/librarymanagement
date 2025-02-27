@@ -2,6 +2,7 @@ import Select from "../../components/Select"
 import styles from '../../styles/OwnerDashHome.module.css'
 import Table from "../../components/Table"
 import Button from "../../components/Button"
+import PageHeader from "../../components/PageHeader"
 
 const rowDatas = [
     {
@@ -39,11 +40,7 @@ const MemberHome = () => {
 
     return (
         <>
-        <div className={styles.header}>
-            <h1>Dashboard</h1>
-            <Select display="Select Library" options={['Library1','Library2']}/>
-        </div>
-
+        <PageHeader title={'Dashboard'} />
         <div className={styles.status_area}>
             <div className={styles.status}>
                 <div className={styles.status_icon}></div>

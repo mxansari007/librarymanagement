@@ -40,7 +40,7 @@ const librarianOptions = [
     {
         id: 2,
         name: "Manage Transactions",
-        link: "/librarian/dashboard/library",
+        link: "/librarian/dashboard/transactions",
         icon: faBookmark,
     },
     {
@@ -77,13 +77,13 @@ const memberOptions = [
     {
         id: 2,
         name:"Request Book",
-        link:"/member/dashboard/library",
+        link:"/member/dashboard/request-book",
         icon:faBookmark
     },
     {
         id: 3,
         name:"My Books",
-        link:"/member/dashboard/library",
+        link:"/member/dashboard/mybooks",
         icon:faBook
     },
     {

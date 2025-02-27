@@ -146,7 +146,7 @@ const OwnerManageLibrarian = () =>{
                 </div>
         </div>
         <Modal label="Create Librarian" modalState={adminModalState} setModalState={setAdminModalState}>
-                <form className={styles.form} onSubmit={handleSubmit(createLibrarian)}>
+                <form className={styles.form +' form'} onSubmit={handleSubmit(createLibrarian)}>
 
                 <Input 
                         label="First Name"

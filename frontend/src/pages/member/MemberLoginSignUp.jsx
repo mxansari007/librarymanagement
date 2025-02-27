@@ -222,7 +222,7 @@ const onSubmitSignUp = async (data) => {
               <div>
                 <h3>Create An Member Account</h3>
                 <p>Start managing your own Library</p>
-                <form onSubmit={signUpHandleSubmit(onSubmitSignUp)}>
+                <form className='form' onSubmit={signUpHandleSubmit(onSubmitSignUp)}>
                   <Input 
                     name="firstName"
                     register={signUpRegister}
@@ -295,7 +295,7 @@ const onSubmitSignUp = async (data) => {
                 <h3>Member Login</h3>
                 <p>Start managing your own Library</p>
                 {/* Fixed login form to use handleSubmit with onSubmitLogin */}
-                <form onSubmit={handleSubmit(onSubmitLogin)}>
+                <form className='form' onSubmit={handleSubmit(onSubmitLogin)}>
                   <Input 
                     name="email"
                     register={register}

@@ -10,6 +10,7 @@ import (
 	"github.com/mxansari007/librarymanagement/models"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
+	"strings"
 )
 
 func SignupMember(db *gorm.DB) gin.HandlerFunc {
@@ -121,4 +122,171 @@ func SignupMember(db *gorm.DB) gin.HandlerFunc {
 			"membership_id": membership.ID,
 		})
 	}
+}
+
+
+// make api to fetch all books by name if book is available in library make it a get request ignore case sensitivity
+
+
+// type Book struct {
+// 	ID        uint      `gorm:"primaryKey" json:"id"`
+// 	LibraryID uint      `gorm:"not null" json:"library_id"`
+// 	Title     string    `gorm:"not null" json:"title"`
+// 	Author    string    `gorm:"not null" json:"author"`
+// 	Publisher string    `json:"publisher"`
+// 	BookImage string    `json:"book_image"`
+// 	Version   string    `json:"version"`
+// 	ISBN      string    `gorm:"unique;not null" json:"isbn"`
+// 	TotalCopies int       `gorm:"not null" json:"total_copies"`
+// 	AvailableCopies int    `gorm:"not null" json:"available_copies"`
+// 	CreatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
+// }
+
+
+
+
+// FetchBooks handles searching books by different criteria (Name, ISBN, Author)
+// FetchBooks handles searching books by different criteria (Name, ISBN, Author)
+func FetchBooks(db *gorm.DB) gin.HandlerFunc {
+    return func(c *gin.Context) {
+        // Get library_id from the authentication context (set by AuthMiddleware)
+        libraryIDRaw, exists := c.Get("library_id")
+        if !exists {
+            c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required or library ID missing"})
+            return
+        }
+
+        // Type assert the library_id to uint
+        libraryID, ok := libraryIDRaw.(uint)
+        if !ok {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid library ID format"})
+            return
+        }
+
+        // Get query parameters
+        title := c.Query("title")
+        isbn := c.Query("isbn")
+        author := c.Query("author")
+
+        // Check if at least one search parameter is provided
+        if title == "" && isbn == "" && author == "" {
+            c.JSON(http.StatusBadRequest, gin.H{"error": "At least one search parameter (title, isbn, or author) is required"})
+            return
+        }
+
+        // Start a database transaction
+        tx := db.Begin()
+        defer func() {
+            if r := recover(); r != nil {
+                tx.Rollback()
+                c.JSON(http.StatusInternalServerError, gin.H{"error": "Unexpected error occurred"})
+            }
+        }()
+
+        // Create a temporary slice to store matching books
+        var matchingBooks []models.Book
+
+        // Build query based on provided parameters
+        query := tx.Where("library_id = ?", libraryID)
+
+        if title != "" {
+            query = query.Where("LOWER(title) LIKE ?", "%"+strings.ToLower(title)+"%")
+        }
+
+        if isbn != "" {
+            query = query.Where("isbn LIKE ?", "%"+isbn+"%")
+        }
+
+        if author != "" {
+            query = query.Where("LOWER(author) LIKE ?", "%"+strings.ToLower(author)+"%")
+        }
+
+        // Execute the query
+        if err := query.Find(&matchingBooks).Error; err != nil {
+            tx.Rollback()
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch books: " + err.Error()})
+            return
+        }
+
+        // Check if no books were found
+        if len(matchingBooks) == 0 {
+            c.JSON(http.StatusNotFound, gin.H{"message": "No books found matching the criteria"})
+            return
+        }
+
+        // Commit the transaction
+        tx.Commit()
+
+        // Return the books directly
+        c.JSON(http.StatusOK, gin.H{"books": matchingBooks})
+    }
+}
+
+
+func RequestBook(db *gorm.DB) gin.HandlerFunc {
+    return func(c *gin.Context) {
+        // Get member_id from context (set by AuthMiddleware as "user_id")
+        type RequestBookInput struct {
+            BookID uint `json:"book_id" binding:"required"`
+        }
+
+        memberIDRaw, exists := c.Get("user_id")
+        if !exists {
+            c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+            return
+        }
+
+        memberID, ok := memberIDRaw.(uint)
+        if !ok {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid member ID format"})
+            return
+        }
+
+        // Bind JSON input from frontend
+        var input RequestBookInput
+        if err := c.ShouldBindJSON(&input); err != nil {
+            c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input: " + err.Error()})
+            return
+        }
+
+        // Create book request
+        bookRequest := models.BookRequest{
+            MemberID:    memberID,
+            BookID:      input.BookID,
+            Status:      "requested",
+            RequestedAt: time.Now(),
+        }
+
+        // Start transaction
+        tx := db.Begin()
+        defer func() {
+            if r := recover(); r != nil {
+                tx.Rollback()
+                c.JSON(http.StatusInternalServerError, gin.H{"error": "Unexpected error occurred"})
+            }
+        }()
+
+        // Attempt to create the record with conflict handling
+        err := tx.Create(&bookRequest).Error
+        if err != nil {
+            tx.Rollback()
+            
+            // Check for unique constraint violation
+            if strings.Contains(err.Error(), "duplicate key value") || strings.Contains(err.Error(), "UNIQUE constraint failed") {
+                c.JSON(http.StatusConflict, gin.H{"error": "You have already requested this book"})
+            } else {
+                c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create book request: " + err.Error()})
+            }
+            return
+        }
+
+        // Commit transaction
+        tx.Commit()
+
+        // Return success response
+        c.JSON(http.StatusOK, gin.H{
+            "message": "Book request created successfully",
+            "book_request": bookRequest,
+        })
+    }
 }

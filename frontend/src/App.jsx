@@ -16,14 +16,18 @@ import LibrarianDashboard from './pages/librarian/Dashboard.jsx'
 import LibrarianHome from './pages/librarian/Home.jsx'
 import ManageBooks from './pages/librarian/ManageBooks.jsx'
 import ManageMembers from './pages/librarian/ManageMembers.jsx'
+import ManageTransactions from './pages/librarian/ManageTransactions.jsx'
 
 // member imports
 import Member from './pages/member/Member.jsx'
 import MemberLoginSignUp from './pages/member/MemberLoginSignUp.jsx'
 import MemberDashboard from './pages/member/Dashboard.jsx'
 import MemberHome from './pages/member/Home.jsx'
+import RequestBook from './pages/member/RequestBook.jsx'
+import MyBooks from './pages/member/MyBooks.jsx';
 import Pending from './pages/member/Pending.jsx'
 import PendingPrivateRoutes from './PendingPrivateRoute.jsx'
+
 
 import OwnerPrivateRoutes from './OwnerPrivateRoutes.jsx'
 import LibrarianPrivateRoutes from './LibrarianPrivateRoutes.jsx'
@@ -55,6 +59,7 @@ function App() {
           <Route index element={<LibrarianHome />} />
           <Route path="books" element={<ManageBooks />} />
           <Route path="members" element={<ManageMembers />} />
+          <Route path="transactions" element={<ManageTransactions />} />
         </Route>
         </Route>
       </Route>
@@ -67,6 +72,8 @@ function App() {
           <Route index element={<MemberLoginSignUp />} />
           <Route path="dashboard" element={<MemberDashboard />}>
             <Route index element={<MemberHome />} />
+            <Route path="request-book" element={<RequestBook />} />
+            <Route path="mybooks" element={<MyBooks />} />
           </Route>
       </Route>
 

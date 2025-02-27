@@ -232,3 +232,169 @@ func DeleteMember(db *gorm.DB) gin.HandlerFunc {
 		c.JSON(http.StatusOK, gin.H{"message": "User deleted"})
 	}
 }
+
+
+// func GetLibraryBookRequests(db *gorm.DB) gin.HandlerFunc {
+//     return func(c *gin.Context) {
+//         type LibraryRequestInput struct {
+//             LibraryID uint `json:"library_id" binding:"required"`
+//         }
+
+//         var input LibraryRequestInput
+//         if err := c.ShouldBindJSON(&input); err != nil {
+//             c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input: " + err.Error()})
+//             return
+//         }
+
+//         var bookRequests []models.BookRequest
+//         if err := db.Joins("JOIN books ON books.id = book_requests.book_id").
+//             Where("books.library_id = ?", input.LibraryID).
+//             Find(&bookRequests).Error; err != nil {
+//             c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch book requests"})
+//             return
+//         }
+
+//         c.JSON(http.StatusOK, gin.H{"book_requests": bookRequests})
+//     }
+// }
+
+func GetLibraryBookRequests(db *gorm.DB) gin.HandlerFunc {
+    return func(c *gin.Context) {
+        // Get library_id from context (set by AuthMiddleware)
+        libraryIDRaw, exists := c.Get("library_id")
+        if !exists {
+            c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+            return
+        }
+
+        libraryID, ok := libraryIDRaw.(uint)
+        if !ok {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid library ID format"})
+            return
+        }
+
+        // Struct to hold enriched book request data
+        type BookRequestDetails struct {
+            ID          uint      `json:"id"`
+            Status      string    `json:"status"`
+            RequestedAt time.Time `json:"requested_at"`
+            ApprovedAt  *time.Time `json:"approved_at,omitempty"`
+
+            // Member details
+            MemberID uint   `json:"member_id"`
+            FirstName string `json:"first_name"`
+			LastName  string `json:"last_name"`
+            MemberEmail string `json:"member_email"`
+			ContactNumber string `json:"contact_number"`
+
+            // Book details
+            BookID    uint   `json:"book_id"`
+            Title     string `json:"title"`
+            Author    string `json:"author"`
+            ISBN      string `json:"isbn"`
+        }
+
+        var bookRequests []BookRequestDetails
+
+        if err := db.Table("book_requests").
+		Select(`book_requests.id, book_requests.status, book_requests.requested_at, 
+		book_requests.approved_at, 
+		members.id as member_id, members.first_name, members.last_name, 
+		members.email as member_email, members.contact_number, 
+		books.id as book_id, books.title, books.author, books.isbn`).
+		Joins("JOIN books ON books.id = book_requests.book_id").
+		Joins("JOIN users as members ON members.id = book_requests.member_id").
+		Where("books.library_id = ?", libraryID).
+            Scan(&bookRequests).Error; err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch book requests"})
+            return
+        }
+
+        c.JSON(http.StatusOK, gin.H{"book_requests": bookRequests})
+    }
+}
+
+
+
+
+
+func ApproveBookRequest(db *gorm.DB) gin.HandlerFunc {
+    return func(c *gin.Context) {
+        // Get librarian ID from context (set by AuthMiddleware)
+        librarianIDRaw, exists := c.Get("user_id")
+        if !exists {
+            c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+            return
+        }
+
+        librarianID, ok := librarianIDRaw.(uint)
+        if !ok {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid librarian ID format"})
+            return
+        }
+
+        type ApproveRequestInput struct {
+            RequestID uint `json:"request_id" binding:"required"`
+        }
+
+        var input ApproveRequestInput
+        if err := c.ShouldBindJSON(&input); err != nil {
+            c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input: " + err.Error()})
+            return
+        }
+
+        // Retrieve book request details
+        var bookRequest models.BookRequest
+        if err := db.First(&bookRequest, input.RequestID).Error; err != nil {
+            c.JSON(http.StatusNotFound, gin.H{"error": "Book request not found"})
+            return
+        }
+
+        // Check if the book exists and has available copies
+        var book models.Book
+        if err := db.First(&book, bookRequest.BookID).Error; err != nil {
+            c.JSON(http.StatusNotFound, gin.H{"error": "Book not found"})
+            return
+        }
+
+        if book.AvailableCopies < 1 {
+            c.JSON(http.StatusBadRequest, gin.H{"error": "No available copies of this book"})
+            return
+        }
+
+        // Update book request status
+        approvedAt := time.Now()
+        if err := db.Model(&bookRequest).
+            Updates(models.BookRequest{
+                Status:      "approved",
+                ApprovedAt:  approvedAt,
+                LibrarianID: librarianID,
+            }).Error; err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update book request"})
+            return
+        }
+
+        // Create a new book transaction
+        bookTransaction := models.BookTransaction{
+            BookID:      bookRequest.BookID,
+            MemberID:    bookRequest.MemberID,
+            LibrarianID: librarianID,
+            BorrowedAt:  approvedAt,
+        }
+
+        if err := db.Create(&bookTransaction).Error; err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create book transaction"})
+            return
+        }
+
+        // Reduce available copies atomically
+        if err := db.Model(&book).
+            Where("available_copies > 0").
+            UpdateColumn("available_copies", gorm.Expr("available_copies - 1")).Error; err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update book availability"})
+            return
+        }
+
+        c.JSON(http.StatusOK, gin.H{"message": "Book request approved successfully"})
+    }
+}

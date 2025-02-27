@@ -130,7 +130,7 @@ const ManageBooks = () => {
                         </div>
                     </div>
 
-                    <Table ColumnDef={libraryColDef} Data={allBooks} imageKey="book_image"/>
+                    <Table ColumnDef={libraryColDef} Data={allBooks} imageName={["Book Image"]} imageKey={["book_image"]}/>
 
                     <div className={styles.pagination_area}>
                         <Pagination />

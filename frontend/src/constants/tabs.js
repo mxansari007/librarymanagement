@@ -24,7 +24,31 @@ const memebersData = [
     }
 ]
 
-export {memebersData};
+const MyBooksTab = [
+    {
+        id: 1,
+        name: "Borrowed Books"
+    },
+    {
+        id: 2,
+        name: "Requested Books"
+    }
+]
+
+const ManageTransactionsTab = [
+
+    {
+        id: 1,
+        name: "Requested"
+    },
+    {
+        id: 2,
+        name: "Borrowed"
+    }
+]
+
+
+export {memebersData,MyBooksTab,ManageTransactionsTab};
 
 
 export default ownerSettingData

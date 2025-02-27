@@ -143,7 +143,7 @@ const OwnerLoginSignUp = () => {
               <div>
                 <h3>Create An Owner Account</h3>
                 <p>Start managing your own Library</p>
-                <form onSubmit={handleSubmit(onSubmitSignUp)}>
+                <form className="form" onSubmit={handleSubmit(onSubmitSignUp)}>
                   {pageState === "signup" ? (
                     <>
                       <Input
@@ -336,7 +336,7 @@ const OwnerLoginSignUp = () => {
               <div>
                 <h3>Owner Login</h3>
                 <p>Start managing your own Library</p>
-                <form onSubmit={loginHandleSubmit(onSubmitLogin)}>
+                <form className="form" onSubmit={loginHandleSubmit(onSubmitLogin)}>
                   <Input
                     name="email"
                     type="email"

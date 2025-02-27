@@ -69,6 +69,14 @@ func LoginUser(c *gin.Context) {
 			return
 		}
 		libraryID = &librarian.LibraryID
+	}else if existingUser.Role == "member" {
+		var libraryMembership models.LibraryMembership
+		if err := db.DB.Where("member_id =?", existingUser.ID).First(&libraryMembership).Error; err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve member data"})
+            return
+        }
+
+		libraryID = &libraryMembership.LibraryID
 	}
 
 	// Generate JWT token with library ID if librarian
@@ -110,12 +118,25 @@ func LoginUser(c *gin.Context) {
 			return
 		}
 
+
 		// Include library details in response
 		userResponse["library_id"] = *libraryID
 		userResponse["library_name"] = library.Name
 		userResponse["address"] = library.Address
 		userResponse["created_at"] = library.CreatedAt
-	}
+	}else if existingUser.Role == "member" {
+		var library models.Library
+        if err := db.DB.Where("id =?", *libraryID).First(&library).Error; err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve library data"})
+            return
+        }
+
+        // Include library details in response
+        userResponse["library_id"] = *libraryID
+        userResponse["library_name"] = library.Name
+        userResponse["address"] = library.Address
+        userResponse["created_at"] = library.CreatedAt
+    }
 
 	// Send response with user data
 	c.JSON(http.StatusOK, gin.H{

@@ -55,9 +55,42 @@ const ManageMembers = () => {
         }
     };
 
+    const fetchingVerifiedMembers = async () => {
+        const user = JSON.parse(localStorage.getItem("user"));
+        try {
+            const res = await axios({
+                method: "GET",
+                url: `${import.meta.env.VITE_BASE_URL}/librarian/fetch-members/${user.library_id}?is_verified=true`,
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("librarian_token")}`,
+                },
+                withCredentials: true,
+            });
+            setVerifiedMembers(res.data.data);
+        } catch (error) {
+            console.error("Fetching verified members error:", error);
+            toast.error("Error fetching verified members");
+        }
+    };
+
+
+
     useEffect(() => {
         fetchingUnverifiedMembers();
+        fetchingVerifiedMembers();
     }, []);
+
+    useEffect(() => {
+
+        if (tabState === 1) {
+            fetchingUnverifiedMembers();
+        } else {
+            fetchingVerifiedMembers();
+        }
+
+
+},[tabState])
+
 
     const { register, control, formState: { errors }, handleSubmit, setValue } = useForm({
         defaultValues: {
@@ -203,7 +236,7 @@ const ManageMembers = () => {
                             </div>
                         </div>
                     </div>
-                    <Table
+                    {tabState==1?<Table
                         ColumnDef={membersDef}
                         buttons={[
                             { name: "Approve", onClick: approveMember },
@@ -212,7 +245,13 @@ const ManageMembers = () => {
                         Data={unverifiedMembers}
                         imageName={["Aadhaar"]}
                         imageKey={["aadhaar_image_url"]}
-                    />
+                    />:
+                    <Table
+                        ColumnDef={membersDef}
+                        Data={verifiedMembers}
+                        />
+                    
+                    }
                     <div className={styles.pagination_area}>
                         <Pagination />
                     </div>

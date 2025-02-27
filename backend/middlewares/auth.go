@@ -26,6 +26,9 @@ func AuthMiddleware(requiredRole string) gin.HandlerFunc {
 			c.Abort()
 			return
 		}
+
+		
+
 		tokenStr := tokenParts[1]
 
 		// Get secret key from environment
@@ -68,8 +71,9 @@ func AuthMiddleware(requiredRole string) gin.HandlerFunc {
 		c.Set("user_id", userID)
 		c.Set("role", role)
 
+
 		// Store library_id for librarians
-		if role == "librarian" {
+		if role == "librarian" || role == "member" {
 			libraryIDFloat, ok := claims["library_id"].(float64)
 			if !ok {
 				c.JSON(http.StatusUnauthorized, gin.H{"error": "Library ID missing for librarian"})

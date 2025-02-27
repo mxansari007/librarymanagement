@@ -1,11 +1,20 @@
-.selectdiv {
-  position: relative;
-  display: block;
-  align-items: center;
+/* Select.module.css */
+.selectContainer {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
 
-  max-width: 320px;
-  min-width: 200px;
-  margin: 5px auto;
+.label {
+  font-size: 0.875rem; /* 14px */
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 0.25rem;
+}
+
+.selectWrapper {
+  position: relative;
+  width: 100%;
 }
 
 /* Hide default dropdown arrow in IE11 */
@@ -13,51 +22,63 @@ select::-ms-expand {
   display: none;
 }
 
-/* Custom dropdown arrow (inside the select box) */
-.selectdiv:after {
-  content: '▼'; /* Unicode arrow */
-  font: 1rem "Poppins", sans-serif;
-  color: #333;
+/* Custom dropdown arrow */
+.selectWrapper:after {
+  content: '▼';
+  font-size: 0.75rem; /* 12px */
+  color: #666;
   position: absolute;
-  right: 12px; /* Adjust to move it inside */
+  right: 0.75rem;
   top: 50%;
   transform: translateY(-50%);
   pointer-events: none;
 }
 
-/* Styling for the select element */
-.selectdiv select {
+/* Base select styling */
+.selectWrapper select {
   width: 100%;
-  padding: 12px 36px 12px 16px; /* Increased right padding for arrow space */
-  font-size: 16px;
+  padding: 0.625rem 2rem 0.625rem 0.75rem; /* 10px 32px 10px 12px */
+  font-size: 1rem; /* 16px */
   line-height: 1.5;
   color: #333;
-  background-color: #ffffff;
-  border: 1px solid #cccccc;
-  border-radius: 5px;
-  appearance: none; /* Remove default styles */
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  appearance: none;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.selectWrapper select:focus {
+  border-color: #666;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Hover state */
+.selectWrapper select:hover {
+  border-color: #999;
 }
 
 /* Responsive adjustments */
 @media screen and (max-width: 768px) {
-  .selectdiv {
-    max-width: 100%; 
-    min-width: auto;
+  .selectWrapper select {
+    padding: 0.5rem 1.75rem 0.5rem 0.625rem; /* 8px 28px 8px 10px */
+    font-size: 0.9375rem; /* 15px */
   }
 
-  .selectdiv select {
-    font-size: 14px;
-    padding: 10px 34px 10px 12px; /* Adjusted right padding */
+  .selectWrapper:after {
+    font-size: 0.6875rem; /* 11px */
+    right: 0.625rem;
   }
 }
 
 @media screen and (max-width: 480px) {
-  .selectdiv select {
-    font-size: 14px;
-    padding: 10px 30px 10px 12px; /* Keep arrow inside select */
+  .selectWrapper select {
+    padding: 0.4375rem 1.5rem 0.4375rem 0.5rem; /* 7px 24px 7px 8px */
+    font-size: 0.875rem; /* 14px */
   }
 
-  .selectdiv:after {
-    right: 10px; /* Slight adjustment */
+  .selectWrapper:after {
+    right: 0.5rem;
   }
 }

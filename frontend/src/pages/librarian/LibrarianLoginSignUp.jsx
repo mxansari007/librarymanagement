@@ -68,7 +68,7 @@ const LibrarianLoginSignUp = () => {
              <div>
               <h3>Librarian Login</h3>
               <p>Start managing your own Library</p>
-              <form onSubmit={handleSubmit(handleLogin)}>
+              <form className='form' onSubmit={handleSubmit(handleLogin)}>
               <Input 
               register={register}
               name="email"
