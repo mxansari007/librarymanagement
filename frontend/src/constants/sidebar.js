@@ -87,12 +87,6 @@ const memberOptions = [
         icon:faBook
     },
     {
-        id: 4,
-        name:"Return Book",
-        link:"/member/dashboard/library",
-        icon:faBookmark
-    },
-    {
         id: 5,
         name:"Settings",
         link:"/member/dashboard/settings",
