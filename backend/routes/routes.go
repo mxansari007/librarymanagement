@@ -43,8 +43,10 @@ func SetupRoutes(router *gin.Engine) {
 		librarian.GET("/books/:book_id", handlers.GetBookByID(db.DB))
 		librarian.GET("/approve-member/:email", handlers.ChangeStatus(db.DB))
 		librarian.POST("/reject-member/:email", handlers.DeleteMember(db.DB))
-		librarian.GET("/pending-book-requests", handlers.GetLibraryBookRequests(db.DB))
+		librarian.GET("/book-requests", handlers.GetLibraryBookRequests(db.DB))
 		librarian.POST("/approve-book", handlers.ApproveBookRequest(db.DB))
+		librarian.POST("/return-book", handlers.ReturnBook(db.DB))
+		librarian.GET("/returned-books", handlers.GetReturnedBooks(db.DB))
 
 	}
 
@@ -54,6 +56,8 @@ func SetupRoutes(router *gin.Engine) {
 		member.Use(middlewares.AuthMiddleware("member"))
 		member.GET("/fetch-book", handlers.FetchBooks(db.DB))
 		member.POST("/request-book", handlers.RequestBook(db.DB))
+		member.GET("/fetch-requests", handlers.FetchBookRequests(db.DB))
+		member.DELETE("/cancel-request/:book_request_id", handlers.CancelBookRequest(db.DB))
 
 	}
 

@@ -44,6 +44,10 @@ const ManageTransactionsTab = [
     {
         id: 2,
         name: "Borrowed"
+    },
+    {
+        id: 3,
+        name: "Returned"
     }
 ]
 

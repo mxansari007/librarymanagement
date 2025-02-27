@@ -290,3 +290,133 @@ func RequestBook(db *gorm.DB) gin.HandlerFunc {
         })
     }
 }
+
+
+// FetchBookRequests retrieves book requests for a member with book details
+func FetchBookRequests(db *gorm.DB) gin.HandlerFunc {
+    return func(c *gin.Context) {
+        // Get member_id from context (set by AuthMiddleware as "user_id")
+        memberIDRaw, exists := c.Get("user_id")
+        if !exists {
+            c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+            return
+        }
+
+        memberID, ok := memberIDRaw.(uint)
+        if !ok {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid member ID format"})
+            return
+        }
+
+        // Get status from query parameter
+        status := c.Query("status")
+
+        // Start transaction
+        tx := db.Begin()
+        defer func() {
+            if r := recover(); r != nil {
+                tx.Rollback()
+                c.JSON(http.StatusInternalServerError, gin.H{"error": "Unexpected error occurred"})
+            }
+        }()
+
+        // Define a struct to hold the combined book request and book details
+        type BookRequestWithDetails struct {
+            ID          uint      `json:"id"`
+            Status      string    `json:"status"`
+            RequestedAt time.Time `json:"requested_at"`
+            ApprovedAt  time.Time `json:"approved_at,omitempty"`
+            LibrarianID uint      `json:"librarian_id,omitempty"`
+            
+            // Book details
+            BookID         uint   `json:"book_id"`
+            Title          string `json:"title"`
+            Author         string `json:"author"`
+            Publisher      string `json:"publisher,omitempty"`
+            ISBN           string `json:"isbn"`
+            TotalCopies    int    `json:"total_copies"`
+            AvailableCopies int   `json:"available_copies"`
+        }
+
+        var bookRequestsWithDetails []BookRequestWithDetails
+
+        // Build query with JOIN to get book details
+        query := tx.Table("book_requests").
+            Select(`book_requests.id, book_requests.status, book_requests.requested_at, 
+                book_requests.approved_at, book_requests.librarian_id,
+                books.id as book_id, books.title, books.author, books.publisher, 
+                books.isbn, books.total_copies, books.available_copies`).
+            Joins("JOIN books ON books.id = book_requests.book_id").
+            Where("book_requests.member_id = ?", memberID)
+
+        // Add status filter if provided
+        if status != "" {
+            query = query.Where("book_requests.status = ?", status)
+        }
+
+        // Execute query
+        if err := query.Scan(&bookRequestsWithDetails).Error; err != nil {
+            tx.Rollback()
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch book requests: " + err.Error()})
+            return
+        }
+
+        // Commit transaction
+        tx.Commit()
+
+        // Return book requests with details
+        c.JSON(http.StatusOK, gin.H{"book_requests": bookRequestsWithDetails})
+    }
+}
+
+
+func CancelBookRequest(db *gorm.DB) gin.HandlerFunc {
+    return func(c *gin.Context) {
+        // Get member_id from context (set by AuthMiddleware as "user_id")
+        memberIDRaw, exists := c.Get("user_id")
+        if!exists {
+            c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+            return
+        }
+
+        memberID, ok := memberIDRaw.(uint)
+
+        if!ok {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid member ID format"})
+            return
+        }
+
+        // Get book_request_id from URL parameter
+        bookRequestID := c.Param("book_request_id")
+
+        // Start transaction
+        tx := db.Begin()
+        defer func() {
+            if r := recover(); r!= nil {
+                tx.Rollback()
+                c.JSON(http.StatusInternalServerError, gin.H{"error": "Unexpected error occurred"})
+            }
+        }()
+
+        // Check if the book request exists and belongs to the member
+        var bookRequest models.BookRequest
+        if err := tx.Where("id =? AND member_id =?", bookRequestID, memberID).First(&bookRequest).Error; err!= nil {
+            tx.Rollback()
+            c.JSON(http.StatusNotFound, gin.H{"error": "Book request not found"})
+            return
+        }
+
+        // Delete the book request
+        if err := tx.Delete(&bookRequest).Error; err!= nil {
+            tx.Rollback()
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to cancel book request: " + err.Error()})
+            return
+        }
+
+        // Commit transaction
+        tx.Commit()
+
+        // Return success response
+        c.JSON(http.StatusOK, gin.H{"message": "Book request canceled successfully"})
+    }
+}

@@ -273,6 +273,9 @@ func GetLibraryBookRequests(db *gorm.DB) gin.HandlerFunc {
             return
         }
 
+        // Get status from query parameter if provided
+        status := c.Query("status")
+
         // Struct to hold enriched book request data
         type BookRequestDetails struct {
             ID          uint      `json:"id"`
@@ -292,22 +295,60 @@ func GetLibraryBookRequests(db *gorm.DB) gin.HandlerFunc {
             Title     string `json:"title"`
             Author    string `json:"author"`
             ISBN      string `json:"isbn"`
+            
+            // Transaction details (for approved requests)
+            TransactionID uint   `json:"transaction_id"`
         }
 
         var bookRequests []BookRequestDetails
+        var query *gorm.DB
 
-        if err := db.Table("book_requests").
-		Select(`book_requests.id, book_requests.status, book_requests.requested_at, 
-		book_requests.approved_at, 
-		members.id as member_id, members.first_name, members.last_name, 
-		members.email as member_email, members.contact_number, 
-		books.id as book_id, books.title, books.author, books.isbn`).
-		Joins("JOIN books ON books.id = book_requests.book_id").
-		Joins("JOIN users as members ON members.id = book_requests.member_id").
-		Where("books.library_id = ?", libraryID).
-            Scan(&bookRequests).Error; err != nil {
+        // If status is explicitly set to "approved", use INNER JOIN to ensure we only get approved requests with transaction IDs
+        if status == "approved" {
+            query = db.Table("book_requests").
+            Select(`book_requests.id, book_requests.status, book_requests.requested_at, 
+            book_requests.approved_at, 
+            members.id as member_id, members.first_name, members.last_name, 
+            members.email as member_email, members.contact_number, 
+            books.id as book_id, books.title, books.author, books.isbn,
+            book_transactions.id as transaction_id`).
+            Joins("JOIN books ON books.id = book_requests.book_id").
+            Joins("JOIN users as members ON members.id = book_requests.member_id").
+            // Use INNER JOIN to ensure we only get records with transaction IDs
+            Joins("INNER JOIN book_transactions ON book_transactions.book_id = book_requests.book_id AND book_transactions.member_id = book_requests.member_id").
+            Where("books.library_id = ? AND book_requests.status = 'approved' AND book_transactions.is_return_approved = false", libraryID)
+        } else {
+            // Original query for other statuses or when no status is specified
+            query = db.Table("book_requests").
+            Select(`book_requests.id, book_requests.status, book_requests.requested_at, 
+            book_requests.approved_at, 
+            members.id as member_id, members.first_name, members.last_name, 
+            members.email as member_email, members.contact_number, 
+            books.id as book_id, books.title, books.author, books.isbn,
+            book_transactions.id as transaction_id`).
+            Joins("JOIN books ON books.id = book_requests.book_id").
+            Joins("JOIN users as members ON members.id = book_requests.member_id").
+            // Left join with book_transactions to get transaction ID for approved requests
+            Joins("LEFT JOIN book_transactions ON book_transactions.book_id = book_requests.book_id AND book_transactions.member_id = book_requests.member_id AND book_requests.status = 'approved'").
+            Where("books.library_id = ?", libraryID)
+
+            // Add status filter if provided
+            if status != "" {
+                query = query.Where("book_requests.status = ?", status)
+            }
+        }
+
+        // Execute the query
+        if err := query.Scan(&bookRequests).Error; err != nil {
             c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch book requests"})
             return
+        }
+
+        // Log the retrieval with status filter if applied
+        if status != "" {
+            log.Printf("Book requests retrieved: Library ID: %v, Status: %s, Count: %d", libraryID, status, len(bookRequests))
+        } else {
+            log.Printf("All book requests retrieved: Library ID: %v, Count: %d", libraryID, len(bookRequests))
         }
 
         c.JSON(http.StatusOK, gin.H{"book_requests": bookRequests})
@@ -396,5 +437,158 @@ func ApproveBookRequest(db *gorm.DB) gin.HandlerFunc {
         }
 
         c.JSON(http.StatusOK, gin.H{"message": "Book request approved successfully"})
+    }
+}
+
+func ReturnBook(db *gorm.DB) gin.HandlerFunc {
+    return func(c *gin.Context) {
+        // Get librarian ID from context (set by AuthMiddleware)
+
+
+        type ReturnBookInput struct {
+            TransactionID uint `json:"transaction_id" binding:"required"`
+        }
+
+        var input ReturnBookInput
+        if err := c.ShouldBindJSON(&input); err != nil {
+            c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input: " + err.Error()})
+            return
+        }
+
+        // Start a transaction
+        tx := db.Begin()
+        if tx.Error != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to start transaction"})
+            return
+        }
+
+        // Retrieve book transaction details
+        var bookTransaction models.BookTransaction
+        if err := tx.First(&bookTransaction, input.TransactionID).Error; err != nil {
+            tx.Rollback()
+            c.JSON(http.StatusNotFound, gin.H{"error": "Book transaction not found"})
+            return
+        }
+
+        // Check if the book is already returned
+        if bookTransaction.IsReturnApproved {
+            tx.Rollback()
+            c.JSON(http.StatusBadRequest, gin.H{"error": "Book is already returned"})
+            return
+        }
+
+        // Update book transaction status
+        returnedAt := time.Now()
+        if err := tx.Model(&bookTransaction).Updates(map[string]interface{}{
+            "returned_at": returnedAt,
+            "is_return_approved": true,
+        }).Error; err != nil {
+            tx.Rollback()
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update book transaction"})
+            return
+        }
+
+        // Get the book details
+        var book models.Book
+        if err := tx.First(&book, bookTransaction.BookID).Error; err != nil {
+            tx.Rollback()
+            c.JSON(http.StatusNotFound, gin.H{"error": "Book not found"})
+            return
+        }
+
+        // Increase available copies
+        if err := tx.Model(&book).UpdateColumn(
+            "available_copies", 
+            gorm.Expr("available_copies + 1")).Error; err != nil {
+            tx.Rollback()
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update book availability"})
+            return
+        }
+
+        // Delete the corresponding book request entry
+        if err := tx.Where("book_id = ? AND member_id = ? AND status = 'approved'", 
+            bookTransaction.BookID, bookTransaction.MemberID).Delete(&models.BookRequest{}).Error; err != nil {
+            tx.Rollback()
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete book request entry"})
+            return
+        }
+
+        // Commit the transaction
+        if err := tx.Commit().Error; err != nil {
+            tx.Rollback()
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to commit transaction"})
+            return
+        }
+
+        // Log the return and send response
+        log.Printf("Book returned: Transaction ID: %d, Book ID: %d, Member ID: %d", 
+            bookTransaction.ID, bookTransaction.BookID, bookTransaction.MemberID)
+        c.JSON(http.StatusOK, gin.H{"message": "Book returned successfully"})
+    }
+}
+
+func GetReturnedBooks(db *gorm.DB) gin.HandlerFunc {
+    return func(c *gin.Context) {
+        // Get library_id from context (set by AuthMiddleware)
+        libraryIDRaw, exists := c.Get("library_id")
+        if !exists {
+            c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
+            return
+        }
+
+        libraryID, ok := libraryIDRaw.(uint)
+        if !ok {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid library ID format"})
+            return
+        }
+
+        // Struct to hold enriched book transaction data
+        type ReturnedBookDetails struct {
+            TransactionID   uint      `json:"transaction_id"`
+            BorrowedAt      time.Time `json:"borrowed_at"`
+            ReturnedAt      time.Time `json:"returned_at"`
+            
+            // Member details
+            MemberID        uint   `json:"member_id"`
+            MemberFirstName string `json:"member_first_name"`
+            MemberLastName  string `json:"member_last_name"`
+            MemberEmail     string `json:"member_email"`
+            ContactNumber   string `json:"contact_number"`
+            
+            // Book details
+            BookID          uint   `json:"book_id"`
+            Title           string `json:"title"`
+            Author          string `json:"author"`
+            ISBN            string `json:"isbn"`
+            
+            // Librarian details
+            LibrarianID     uint   `json:"librarian_id"`
+            LibrarianName   string `json:"librarian_name"`
+        }
+
+        var returnedBooks []ReturnedBookDetails
+
+        // Build the query to get returned books with details
+        query := db.Table("book_transactions").
+            Select(`book_transactions.id as transaction_id, book_transactions.borrowed_at, book_transactions.returned_at,
+                members.id as member_id, members.first_name as member_first_name, members.last_name as member_last_name, 
+                members.email as member_email, members.contact_number,
+                books.id as book_id, books.title, books.author, books.isbn,
+                book_transactions.librarian_id, CONCAT(librarians.first_name, ' ', librarians.last_name) as librarian_name`).
+            Joins("JOIN books ON books.id = book_transactions.book_id").
+            Joins("JOIN users as members ON members.id = book_transactions.member_id").
+            Joins("JOIN users as librarians ON librarians.id = book_transactions.librarian_id").
+            Where("books.library_id = ? AND book_transactions.is_return_approved = true", libraryID)
+
+        // Execute the query
+        if err := query.Scan(&returnedBooks).Error; err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch returned books"})
+            return
+        }
+
+        // Log the retrieval
+        log.Printf("Returned books retrieved: Library ID: %v, Count: %d", libraryID, len(returnedBooks))
+
+        c.JSON(http.StatusOK, gin.H{"returned_books": returnedBooks})
     }
 }

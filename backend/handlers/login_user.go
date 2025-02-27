@@ -144,3 +144,15 @@ func LoginUser(c *gin.Context) {
 		"user":  userResponse,
 	})
 }
+
+
+// make logout api for all roles i have different cookie for each role
+
+func LogoutUser(c *gin.Context) {
+	// Clear the token cookie
+	c.SetCookie("token", "", -1, "/", "localhost", false, true)
+	// Respond with a success message
+	c.JSON(http.StatusOK, gin.H{"message": "Logged out successfully"})
+}
+
+

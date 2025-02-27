@@ -12,13 +12,12 @@
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     margin-top: 2rem;
     display: flex;
-
     flex-direction: column;
   }
   
   .searchTypeWrapper {
     margin-bottom: 1.5rem;
-    max-width: 300px;
+    width: 100%;
   }
   
   .searchForm {
@@ -35,10 +34,12 @@
   .buttonWrapper {
     display: flex;
     justify-content: flex-start;
+    width: 100%;
   }
   
   .searchButton {
     min-width: 120px;
+    width: 100%;
   }
   
   .resultsContainer {
@@ -74,13 +75,15 @@
   @media (min-width: 768px) {
     .searchContainer {
       flex-direction: row;
-      align-items: flex-start;
+      align-items: flex-end;
     }
     
     .searchTypeWrapper {
       margin-bottom: 0;
       margin-right: 1.5rem;
       min-width: 200px;
+      max-width: 250px;
+      width: 25%;
     }
     
     .searchForm {
@@ -95,6 +98,11 @@
     
     .buttonWrapper {
       margin-left: 1rem;
+      width: auto;
+    }
+    
+    .searchButton {
+      width: auto;
     }
   }
   

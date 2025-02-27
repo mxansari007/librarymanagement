@@ -1,0 +1,3 @@
+@echo off
+echo Starting CompileDaemon for hot reloading...
+CompileDaemon -build="go build -o ./tmp/main.exe ." -command="./tmp/main.exe" -color=true -log-prefix=false -exclude-dir=".git,tmp" -pattern="(.+\.go|.+\.env)$"
