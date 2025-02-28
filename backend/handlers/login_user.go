@@ -148,11 +148,23 @@ func LoginUser(c *gin.Context) {
 
 // make logout api for all roles i have different cookie for each role
 
-func LogoutUser(c *gin.Context) {
-	// Clear the token cookie
-	c.SetCookie("token", "", -1, "/", "localhost", false, true)
-	// Respond with a success message
-	c.JSON(http.StatusOK, gin.H{"message": "Logged out successfully"})
-}
+// func LogoutUser(c *gin.Context) {
+// 	// Clear the token cookie
+// 	role := c.param("role")
+
+// 	if(role == "member") {
+// 		c.SetCookie("member_token", "", -1, "/", "localhost", false, true)
+//     } else if(role == "librarian") {
+// 		c.SetCookie("librarian_token", "", -1, "/", "localhost", false, true)
+// 	} else if(role == "owner") {
+// 		c.SetCookie("owner_token", "", -1, "/", "localhost", false, true)
+//     } else {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid role"})
+// 		return
+// 	}
+
+// 	// Respond with a success message
+// 	c.JSON(http.StatusOK, gin.H{"message": "Logged out successfully"})
+// }
 
 
