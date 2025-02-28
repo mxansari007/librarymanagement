@@ -5,6 +5,10 @@ import { toast, ToastContainer } from "react-toastify";
 import Table from "../../components/Table";
 import Tabs from "../../components/Tabs";
 import { ManageTransactionsTab } from "../../constants/tabs";
+import Modal from "../../components/Modal";
+import Calendar from "react-calendar";
+import Button from "../../components/Button";
+import "react-calendar/dist/Calendar.css";
 
 const columnDefs = [
   { header: "First Name", key: "first_name" },
@@ -21,8 +25,6 @@ const returnedColumnDefs = [
   { header: "Email", key: "member_email" },
   { header: "Book Title", key: "title" },
   { header: "ISBN", key: "isbn" },
-  //   { header: "Borrowed At", key: "borrowed_at" },
-  //   { header: "Returned At", key: "returned_at" },
 ];
 
 const ManageTransactions = () => {
@@ -30,58 +32,52 @@ const ManageTransactions = () => {
   const [borrowedBooks, setBorrowedBooks] = useState([]);
   const [returnedBooks, setReturnedBooks] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const hasFetched = useRef(false); // Prevent multiple executions
+  const hasFetched = useRef(false);
   const [tabState, setTabState] = useState(1);
+  const [dueDate, setDueDate] = useState(new Date()); 
+  const [dateModalOpen, setDateModalOpen] = useState(false);
+  const [requestedBook, setRequestedBook] = useState(null);
 
   const fetchAllBookRequests = async () => {
     setIsLoading(true);
     try {
-      // Fetch requested books using status=requested parameter
       const requestedResponse = await apiRequest(
         "GET",
         "/librarian/book-requests?status=requested",
         {},
-        {token:localStorage.getItem("librarian_token")}
+        { token: localStorage.getItem("librarian_token") }
       );
 
-      // Fetch borrowed books using status=approved parameter
       const borrowedResponse = await apiRequest(
         "GET",
         "/librarian/book-requests?status=approved",
         {},
-        {token:localStorage.getItem("librarian_token")}
+        { token: localStorage.getItem("librarian_token") }
       );
 
-      // Fetch returned books
       const returnedResponse = await apiRequest(
         "GET",
         "/librarian/returned-books",
         {},
-        {token:localStorage.getItem("librarian_token")}
+        { token: localStorage.getItem("librarian_token") }
       );
 
       if (requestedResponse.success) {
         setRequestedBooks(requestedResponse.data.book_requests || []);
       } else {
-        toast.error(
-          "Failed to fetch requested books: " + requestedResponse.error
-        );
+        toast.error("Failed to fetch requested books: " + requestedResponse.error);
       }
 
       if (borrowedResponse.success) {
         setBorrowedBooks(borrowedResponse.data.book_requests || []);
       } else {
-        toast.error(
-          "Failed to fetch borrowed books: " + borrowedResponse.error
-        );
+        toast.error("Failed to fetch borrowed books: " + borrowedResponse.error);
       }
 
       if (returnedResponse.success) {
         setReturnedBooks(returnedResponse.data.returned_books || []);
       } else {
-        toast.error(
-          "Failed to fetch returned books: " + returnedResponse.error
-        );
+        toast.error("Failed to fetch returned books: " + returnedResponse.error);
       }
     } catch (error) {
       console.error("Error fetching book requests:", error);
@@ -94,31 +90,42 @@ const ManageTransactions = () => {
   useEffect(() => {
     if (!hasFetched.current) {
       fetchAllBookRequests();
-      hasFetched.current = true; // Ensures it runs only once
+      hasFetched.current = true;
     }
   }, []);
 
-  const acceptBookRequest = async (row) => {
+  const acceptBookRequest = async (isDefault, row) => {
+    if (!row) {
+      toast.error("No book selected");
+      return;
+    }
+
     try {
+      const dueDateFinal = isDefault ? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) : dueDate;
+
       const response = await apiRequest(
         "POST",
-        `/librarian/approve-book`,
-        { request_id: row.id },
-        {token:localStorage.getItem("librarian_token")}
+        "/librarian/approve-book",
+        { request_id: row.id, due_date: dueDateFinal || null },
+        { token: localStorage.getItem("librarian_token") }
       );
 
       if (response.success) {
         toast.success("Book request accepted");
-        fetchAllBookRequests(); // Refresh both lists
+        setDateModalOpen(false);
+        fetchAllBookRequests();
       } else {
         toast.error(response.error);
       }
     } catch (error) {
-      toast.error(
-        error.response?.data?.error || "Error accepting book request"
-      );
+      toast.error(error.response?.data?.error || "Error accepting book request");
       console.error("Error accepting book request:", error);
     }
+  };
+
+  const handleAcceptRequest = (row) => {
+    setDateModalOpen(true);
+    setRequestedBook(row);
   };
 
   const rejectBookRequest = async (row) => {
@@ -127,19 +134,17 @@ const ManageTransactions = () => {
         "POST",
         `/librarian/reject-book`,
         { request_id: row.id },
-        {token:localStorage.getItem("librarian_token")}
+        { token: localStorage.getItem("librarian_token") }
       );
 
       if (response.success) {
         toast.success("Book request rejected");
-        fetchAllBookRequests(); // Refresh both lists
+        fetchAllBookRequests();
       } else {
         toast.error(response.error);
       }
     } catch (error) {
-      toast.error(
-        error.response?.data?.error || "Error rejecting book request"
-      );
+      toast.error(error.response?.data?.error || "Error rejecting book request");
       console.error("Error rejecting book request:", error);
     }
   };
@@ -150,12 +155,12 @@ const ManageTransactions = () => {
         "POST",
         `/librarian/return-book`,
         { transaction_id: row.transaction_id },
-        {token:localStorage.getItem("librarian_token")}
+        { token: localStorage.getItem("librarian_token") }
       );
 
       if (response.success) {
         toast.success("Book returned successfully");
-        fetchAllBookRequests(); // Refresh all lists
+        fetchAllBookRequests();
       } else {
         toast.error(response.error);
       }
@@ -165,14 +170,12 @@ const ManageTransactions = () => {
     }
   };
 
-  // Get action buttons based on the current tab
   const getActionButtons = () => {
     if (tabState === 1) {
-      // Requested tab
       return [
         {
           name: "Accept",
-          onClick: acceptBookRequest,
+          onClick: handleAcceptRequest,
         },
         {
           name: "Reject",
@@ -180,16 +183,14 @@ const ManageTransactions = () => {
         },
       ];
     } else if (tabState === 2) {
-      // Borrowed tab
       return [
         {
-          name: "Recieve",
+          name: "Receive",
           onClick: returnBook,
         },
       ];
     } else {
-      // Returned tab
-      return []; // No actions for returned books
+      return [];
     }
   };
 
@@ -197,11 +198,7 @@ const ManageTransactions = () => {
     <>
       <PageHeader title="Manage Transactions" />
       <ToastContainer />
-      <Tabs
-        tabState={tabState}
-        setTabState={setTabState}
-        data={ManageTransactionsTab}
-      />
+      <Tabs tabState={tabState} setTabState={setTabState} data={ManageTransactionsTab} />
 
       {isLoading ? (
         <div className="loading-container">
@@ -210,16 +207,21 @@ const ManageTransactions = () => {
       ) : (
         <Table
           ColumnDef={tabState === 3 ? returnedColumnDefs : columnDefs}
-          Data={
-            tabState === 1
-              ? requestedBooks
-              : tabState === 2
-              ? borrowedBooks
-              : returnedBooks
-          }
+          Data={tabState === 1 ? requestedBooks : tabState === 2 ? borrowedBooks : returnedBooks}
           buttons={getActionButtons()}
         />
       )}
+
+      <Modal modalState={dateModalOpen} setModalState={() => setDateModalOpen(false)} label="Set Due Date">
+        <div style={{ display: "flex", width: "100%", justifyContent: "center", alignItems: "center" }}>
+          <Calendar onChange={setDueDate} value={dueDate} minDate={new Date()} />
+        </div>
+        <Button onClick={() => acceptBookRequest(false, requestedBook)}>Select This Date</Button>
+        <Button onClick={() => acceptBookRequest(true, requestedBook)}>Default (7 Days)</Button>
+        <Button onClick={() => setDateModalOpen(false)} variant="secondary">
+          Cancel
+        </Button>
+      </Modal>
     </>
   );
 };

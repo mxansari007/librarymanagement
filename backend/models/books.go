@@ -31,6 +31,7 @@ type BookTransaction struct {
 	BookID           uint      `gorm:"not null" json:"book_id"`
 	MemberID         uint      `gorm:"not null" json:"member_id"`
 	LibrarianID      uint      `json:"librarian_id"`
+	DueDate          time.Time `gorm:"not null" json:"due_date"`
 	BorrowedAt       time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"borrowed_at"`
 	ReturnedAt       time.Time `json:"returned_at"`
 	IsReturnApproved bool      `gorm:"default:false" json:"is_return_approved"`

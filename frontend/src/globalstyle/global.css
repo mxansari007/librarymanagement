@@ -201,3 +201,97 @@ input:focus, textarea:focus {
   padding: 2.5em 3.5em;
   /* More generous padding */
 }
+
+
+.react-calendar {
+  width: 100%;
+  max-width: 400px;
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  box-shadow: 0px 4px 10px var(--color-shadow);
+  font-family: "Poppins", sans-serif;
+  padding: 10px;
+}
+
+/* Navigation Bar */
+.react-calendar__navigation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--color-primary);
+}
+
+.react-calendar__navigation button {
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 5px;
+  transition: color 0.3s ease-in-out;
+}
+
+.react-calendar__navigation button:hover {
+  color: var(--color-primary-hover);
+}
+
+/* Days of the Week */
+.react-calendar__month-view__weekdays {
+  font-weight: 500;
+  color: var(--color-neutral);
+}
+
+/* Individual Days */
+.react-calendar__tile {
+  padding: 12px;
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--color-neutral);
+  border-radius: 6px;
+  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+}
+
+.react-calendar__tile:enabled:hover {
+  background-color: var(--color-primary-faded);
+  color: var(--color-primary);
+}
+
+.react-calendar__tile--active {
+  background-color: var(--color-primary);
+  color: white;
+}
+
+/* Today's Date */
+.react-calendar__tile--now {
+  background-color: var(--color-secondary);
+  color: white;
+  font-weight: bold;
+}
+
+/* Disabled Dates */
+.react-calendar__tile:disabled {
+  color: var(--color-placeholder);
+  background-color: transparent;
+  cursor: not-allowed;
+}
+
+/* Month and Year Dropdown Styling */
+.react-calendar__year-view__months button,
+.react-calendar__decade-view__years button,
+.react-calendar__century-view__decades button {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--color-neutral);
+  padding: 10px;
+  transition: background-color 0.2s;
+}
+
+.react-calendar__year-view__months button:hover,
+.react-calendar__decade-view__years button:hover,
+.react-calendar__century-view__decades button:hover {
+  background-color: var(--color-gentle-hover);
+}

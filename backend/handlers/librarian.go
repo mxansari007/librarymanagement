@@ -375,7 +375,8 @@ func ApproveBookRequest(db *gorm.DB) gin.HandlerFunc {
         }
 
         type ApproveRequestInput struct {
-            RequestID uint `json:"request_id" binding:"required"`
+            RequestID uint      `json:"request_id" binding:"required"`
+            DueDate   time.Time `json:"due_date"` // Optional, defaults to 7 days if empty
         }
 
         var input ApproveRequestInput
@@ -403,8 +404,14 @@ func ApproveBookRequest(db *gorm.DB) gin.HandlerFunc {
             return
         }
 
-        // Update book request status
+        // Set default due date to 7 days from today if not provided
         approvedAt := time.Now()
+        dueDate := input.DueDate
+        if dueDate.IsZero() {
+            dueDate = approvedAt.AddDate(0, 0, 7) // Default: 7 days from approval date
+        }
+
+        // Update book request status
         if err := db.Model(&bookRequest).
             Updates(models.BookRequest{
                 Status:      "approved",
@@ -417,10 +424,12 @@ func ApproveBookRequest(db *gorm.DB) gin.HandlerFunc {
 
         // Create a new book transaction
         bookTransaction := models.BookTransaction{
-            BookID:      bookRequest.BookID,
-            MemberID:    bookRequest.MemberID,
-            LibrarianID: librarianID,
-            BorrowedAt:  approvedAt,
+            BookID:           bookRequest.BookID,
+            MemberID:         bookRequest.MemberID,
+            LibrarianID:      librarianID,
+            BorrowedAt:       approvedAt,
+            DueDate:          dueDate,
+            IsReturnApproved: false,
         }
 
         if err := db.Create(&bookTransaction).Error; err != nil {
@@ -436,9 +445,13 @@ func ApproveBookRequest(db *gorm.DB) gin.HandlerFunc {
             return
         }
 
-        c.JSON(http.StatusOK, gin.H{"message": "Book request approved successfully"})
+        c.JSON(http.StatusOK, gin.H{
+            "message": "Book request approved successfully",
+            "due_date": dueDate.Format("2006-01-02 15:04:05"),
+        })
     }
 }
+
 
 func ReturnBook(db *gorm.DB) gin.HandlerFunc {
     return func(c *gin.Context) {
