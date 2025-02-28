@@ -16,13 +16,17 @@ const Table = ({
   const [selectedImageName, setSelectedImageName] = useState(""); // For dynamic download names
 
   useEffect(() => {
-    setTableData(Data || []);
+    if (JSON.stringify(data) !== JSON.stringify(Data)) {
+      setTableData(Data || []);
+    }
   }, [Data]);
-
+  
   useEffect(() => {
-    setColumnDef(ColumnDef || []);
+    if (JSON.stringify(columnDef) !== JSON.stringify(ColumnDef)) {
+      setColumnDef(ColumnDef || []);
+    }
   }, [ColumnDef]);
-
+  
   const openImageModal = (imageData, imageName) => {
     setSelectedImage(imageData);
     setSelectedImageName(imageName);

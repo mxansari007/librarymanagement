@@ -1,12 +1,13 @@
-import {useState,useRef,useEffect} from 'react'
-import PageHeader from "../../components/PageHeader"
-import { MyBooksTab } from "../../constants/tabs"
-import Tabs from "../../components/Tabs"
+import { useState, useRef, useEffect } from 'react';
+import PageHeader from "../../components/PageHeader";
+import { MyBooksTab } from "../../constants/tabs";
+import Tabs from "../../components/Tabs";
+import Table from "../../components/Table";
+import { toast } from "react-toastify";
+import apiRequest from "../../utils/api";
 
-
-const MyBooks = ()=>{
-
-    const [tabState, setTabState] = useState(1);
+const MyBooks = () => {
+  const [tabState, setTabState] = useState(1);
   const [borrowedBooks, setBorrowedBooks] = useState([]);
   const [requestedBooks, setRequestedBooks] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -24,12 +25,14 @@ const MyBooks = ()=>{
   const fetchMyBooks = async () => {
     setIsLoading(true);
     try {
+      const token = localStorage.getItem("member_token");
+
       // Fetch borrowed books
       const borrowedResponse = await apiRequest(
         "GET",
         "/member/fetch-requests?status=approved",
         {},
-        localStorage.getItem("member_token")
+        { token }
       );
 
       // Fetch requested books
@@ -37,23 +40,19 @@ const MyBooks = ()=>{
         "GET",
         "/member/fetch-requests?status=requested",
         {},
-        localStorage.getItem("member_token")
+        { token }
       );
 
       if (borrowedResponse.success) {
         setBorrowedBooks(borrowedResponse.data.book_requests || []);
       } else {
-        toast.error(
-          "Failed to fetch borrowed books: " + borrowedResponse.error
-        );
+        toast.error("Failed to fetch borrowed books: " + borrowedResponse.error);
       }
 
       if (requestedResponse.success) {
         setRequestedBooks(requestedResponse.data.book_requests || []);
       } else {
-        toast.error(
-          "Failed to fetch requested books: " + requestedResponse.error
-        );
+        toast.error("Failed to fetch requested books: " + requestedResponse.error);
       }
     } catch (error) {
       console.error("Error fetching books:", error);
@@ -77,7 +76,7 @@ const MyBooks = ()=>{
         "POST",
         "/member/return-book",
         { book_id: book.id },
-        localStorage.getItem("member_token")
+        { token: localStorage.getItem("member_token") }
       );
 
       if (response.success) {
@@ -94,13 +93,12 @@ const MyBooks = ()=>{
 
   // Handle canceling a book request
   const handleCancelRequest = async (book) => {
-    console.log("Canceling request for book:", book);
     try {
       const response = await apiRequest(
         "DELETE",
         `/member/cancel-request/${book.id}`,
         {},
-        localStorage.getItem("member_token")
+        { token: localStorage.getItem("member_token") }
       );
 
       if (response.success) {
@@ -141,17 +139,27 @@ const MyBooks = ()=>{
       <PageHeader title="My Books" />
       <Tabs data={MyBooksTab} tabState={tabState} setTabState={setTabState} />
 
-    {
-        tabState === 1 &&
+      {tabState === 1 && (
         <div>
-
-            
-
+          <Table 
+            ColumnDef={columnDefinitions} 
+            Data={borrowedBooks} 
+            buttons={getActionButtons()} 
+          />
         </div>
-    }
-    
-    </>)
-}
+      )}
 
+      {tabState === 2 && (
+        <div>
+          <Table 
+            ColumnDef={columnDefinitions} 
+            Data={requestedBooks} 
+            buttons={getActionButtons()} // ✅ Fixed incorrect syntax
+          />
+        </div>
+      )}
+    </>
+  );
+};
 
-export default MyBooks
+export default MyBooks;
