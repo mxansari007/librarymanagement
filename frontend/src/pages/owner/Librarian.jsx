@@ -10,6 +10,7 @@ import { useForm } from 'react-hook-form'
 import { DevTool } from '@hookform/devtools'
 import axios from 'axios'
 import { toast, ToastContainer } from'react-toastify';
+import apiRequest from '../../utils/api'
 
 
 const adminColDef = [
@@ -39,7 +40,7 @@ const adminColDef = [
 const OwnerManageLibrarian = () =>{
 
     const [adminModalState, setAdminModalState] = useState(false)
-    const {register,control,formState:{errors},handleSubmit} = useForm(
+    const {register,control,formState:{errors},reset,handleSubmit} = useForm(
         {
             defaultValues:{
                 firstName:"",
@@ -53,18 +54,22 @@ const OwnerManageLibrarian = () =>{
     )
     const [librarians, setLibrarians] = useState([])
 
-
     const fetchLibrarians = async () => {
         try{
-            const res = await axios.get(import.meta.env.VITE_BASE_URL + "/owner/librarians", {
-                headers: { Authorization: `Bearer ${localStorage.getItem("owner_token")}` },
-                withCredentials: true,
-            });
-            if(res.status === 200){
+            const res = await apiRequest("GET",'/owner/librarians',{},
+                {
+                    token: localStorage.getItem("owner_token")
+                })
+
+
+
+            if(res.success){
                 setLibrarians(res.data.librarians);
+            }else{
+                errorMessage("Error fetching librarians",res.error);
             }
         }catch(error){
-            errorMessage("Error fetching librarians");
+            errorMessage("Error fetching librarians",error.error);
         }
     }
 
@@ -76,7 +81,9 @@ const OwnerManageLibrarian = () =>{
 
     const successMessage = (msg) => toast.success(msg,{
         autoClose: 5000,
-        pauseOnHover: false,
+        pauseOnHover: false,        catch(err){
+            errorMessage("Failed to create librarian");
+        }
         
     });
     const errorMessage = (msg) => toast.error(msg,{
@@ -90,28 +97,28 @@ const OwnerManageLibrarian = () =>{
     const createLibrarian = async (data) => {
 
         try{
-            const res = await axios({
-                method:"post",
-                url:import.meta.env.VITE_BASE_URL + "/owner/create-librarian",
-                data: {
-                    first_name: data.firstName,
+            const res = await apiRequest("POST",'/owner/create-librarian',
+                {
+                first_name: data.firstName,
                     last_name: data.lastName,
                     email: data.email,
                     password: data.password,
                     library_id: Number(data.libraryId),
                     contact_number: data.contactNumber,
-                },
-                headers: { Authorization: `Bearer ${localStorage.getItem("owner_token")}` },
-                withCredentials: true,
-            })
-            if(res.status === 201){
+                }
+            ,{token: localStorage.getItem("owner_token")})
+            
+            if(res.success){
                 successMessage("Librarian created successfully");
                 setAdminModalState(false);
-                formState.reset();
+                fetchLibrarians();
+                reset();
+            }else{
+                errorMessage("Failed to create librarian: " + res.error);
             }
-        }
-        catch(err){
-            errorMessage("Failed to create librarian");
+                
+        }catch(error){
+            console.log(error)
         }
     }
 
@@ -132,7 +139,9 @@ const OwnerManageLibrarian = () =>{
                 <h3>Librarians</h3>
 
                 <div className={styles.filter_area}>
+                    <div>
                     <Select display="Search By" options={['Library Name','City','State']}/>
+                    </div>
                     <div className={styles.search_area}>
                     <Input type="text" placeholder="Search" />
                     <Button>Search</Button>
@@ -236,6 +245,7 @@ const OwnerManageLibrarian = () =>{
                 </form>
             </Modal>
             </div>
+            <ToastContainer />  {/* To display toast messages */}
             <DevTool control={control} />
         </>
     )

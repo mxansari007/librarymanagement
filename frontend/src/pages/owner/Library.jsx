@@ -10,6 +10,7 @@ import Table from "../../components/Table";
 import Pagination from "../../components/Pagination";
 import Select from "../../components/Select";
 import axios from "axios";
+import apiRequest from "../../utils/api";
 
 const libraryColDef = [
   { header: "Library ID", key: "id" },
@@ -70,37 +71,37 @@ const OwnerManageLibrary = () => {
 
   const fetchLibraries = async () => {
     try {
-      const res = await axios.get(import.meta.env.VITE_BASE_URL + "/owner/libraries", {
-        headers: { Authorization: `Bearer ${localStorage.getItem("owner_token")}` },
-        withCredentials: true,
-      });
-      if (res.status === 200) setLibraries(res.data.libraries);
+      const res = await apiRequest("GET",'/owner/libraries',{},
+        {token: localStorage.getItem("owner_token")})
+
+      if (res.success) setLibraries(res.data.libraries);
+      else notifyError("Error fetching libraries",res.error);
     } catch (error) {
-      notifyError("Error fetching libraries");
+      notifyError("Error fetching libraries",error.error);
     }
   };
 
   const createLibrary = async (data) => {
     try {
-      const res = await axios.post(
-        import.meta.env.VITE_BASE_URL + "/owner/create-library",
-        {
-          name: data.libraryName,
-          address: data.libraryAddress,
-          city: data.city,
-          subscription_type: data.subscription_type,
-          rate: data.subscription_type === "paid" ? Number(data.rate) : 0,
+      const res = await apiRequest("POST", '/owner/create-library', {
+        first_name: data.firstName,
+        last_name: data.lastName,
+        email: data.email,
+        password: data.password,
+        library_id: Number(data.libraryId),
+        contact_number: data.contactNumber,
         },
-        {
-          headers: { Authorization: `Bearer ${localStorage.getItem("owner_token")}` },
-          withCredentials: true,
-        }
-      );
-      if (res.status === 201) {
+        {token: localStorage.getItem("owner_token")}
+      )
+
+
+      if (res.success) {
         notifySuccess("Library created successfully");
         fetchLibraries();
         setModalState(false);
         reset();
+      }else{
+        notifyError("Library creation failed",res.error);
       }
     } catch (error) {
       notifyError("Library creation failed");
@@ -109,13 +110,15 @@ const OwnerManageLibrary = () => {
 
   const deleteLibrary = async (row) => {
     try {
-      const res = await axios.delete(import.meta.env.VITE_BASE_URL + `/owner/libraries/${row.id}`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("owner_token")}` },
-        withCredentials: true,
-      });
-      if (res.status === 200) {
+      const res = await apiRequest("DELETE", `/owner/libraries/${row.id}`, {},
+        {token: localStorage.getItem("owner_token")}
+      )
+
+      if (res.success) {
         notifySuccess("Library deleted successfully");
         fetchLibraries();
+      }else{
+        notifyError("Library deletion failed",res.error);
       }
     } catch (error) {
       notifyError("Library deletion failed");
@@ -124,24 +127,24 @@ const OwnerManageLibrary = () => {
 
   const handleUpdate = async (data) => {
     try {
-      const res = await axios.patch(
-        import.meta.env.VITE_BASE_URL + `/owner/libraries/${editData.id}`,
-        {
-          id: editData.id,
-          name: data.libraryName,
-          address: data.libraryAddress,
-          subscription_type: data.subscription_type,
-          rate: data.subscription_type === "paid" ? Number(data.rate) : 0,
-        },
-        {
-          headers: { Authorization: `Bearer ${localStorage.getItem("owner_token")}` },
-          withCredentials: true,
-        }
-      );
-      if (res.status === 200) {
+      const res = await apiRequest("PATCH", `/owner/libraries/${editData.id}`, {
+        id: editData.id,
+        name: data.libraryName,
+        address: data.libraryAddress,
+        city: data.city,
+        subscription_type: data.subscription_type,
+        rate: data.subscription_type === "paid" && Number(data.rate) || 0,
+      },
+      {token: localStorage.getItem("owner_token")}
+      )
+
+
+      if (res.success) {
         notifySuccess("Library updated successfully");
         fetchLibraries();
         setEditModalState(false);
+      }else{
+        notifyError("Library update failed",res.error);
       }
     } catch (error) {
       notifyError("Library update failed");
@@ -169,7 +172,9 @@ const OwnerManageLibrary = () => {
           <div className={styles.table_heading}>
             <h3>Library List</h3>
             <div className={styles.filter_area}>
-              <Select display="Search By" options={["Library Name", "City", "State"]} />
+              <div>
+                <Select display="Search By" options={["Library Name", "City", "State"]} />
+              </div>
               <div className={styles.search_area}>
                 <Input type="text" placeholder="Search" />
                 <Button>Search</Button>

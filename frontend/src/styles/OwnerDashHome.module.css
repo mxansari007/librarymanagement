@@ -9,6 +9,11 @@
     width: 100%;
 }
 
+
+.library_select{
+    margin-right: 1em;
+}
+
 /* Responsive Header */
 @media screen and (max-width: 768px) {
     .header {

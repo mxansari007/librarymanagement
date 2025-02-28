@@ -41,7 +41,9 @@ const Home = () => {
         <>
         <div className={styles.header}>
             <h1>Dashboard</h1>
-            <Select display="Select Library" options={['Library1','Library2']}/>
+            <div className={styles.library_select}>
+                <Select display="Select Library" options={['Library1','Library2']}/>
+            </div>
         </div>
 
         <div className={styles.status_area}>

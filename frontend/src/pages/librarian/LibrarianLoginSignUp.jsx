@@ -11,6 +11,7 @@ import { toast, ToastContainer } from'react-toastify';
 import { useNavigate } from'react-router-dom'
 import apiRequest from '../../utils/api.js'
 
+
 const LibrarianLoginSignUp = () => {
 
 
@@ -33,13 +34,22 @@ const LibrarianLoginSignUp = () => {
       const res = await apiRequest("POST","/user/login",{
         email: data.email,
         password_hash: data.password,
-      },"")
+      },{})
 
       if(res.success){
+        
+        if(res.data.user.role!='librarian'){
+          toast.error("Only librarians can login from here")
+          return;
+        }
+
+
         localStorage.setItem("user", JSON.stringify(res.data.user));
         localStorage.setItem("librarian_token", res.data.token);
         localStorage.setItem("route","Dashboard")
         navigate("/librarian/dashboard")
+      }else{
+        toast.error(res.error)
       }
 
     }catch(error){
@@ -77,14 +87,13 @@ const LibrarianLoginSignUp = () => {
               error={errors.password}
               validation={{ required: "Please Enter your password" }}
               type="password" placeholder="Password" />
-              <div className={styles.buttons}>
               <Button type="submit">Login</Button>
-              </div>
               </form>
               </div>
            </div>
         </div>
       </div>
+      <ToastContainer />
     </div>
   )
 }

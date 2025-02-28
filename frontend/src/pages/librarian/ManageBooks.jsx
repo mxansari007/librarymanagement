@@ -11,6 +11,7 @@ import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import Modal from "../../components/Modal";
 import { useState, useEffect } from "react";
+import apiRequest from "../../utils/api";
 
 const libraryColDef = [
   { header: "Book ID", key: "id" },
@@ -47,19 +48,14 @@ const ManageBooks = () => {
     const token = localStorage.getItem("librarian_token");
 
     try {
-      const res = await axios({
-        method: "GET",
-        url: `${import.meta.env.VITE_BASE_URL}/librarian/books`,
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        withCredentials: true, // Ensures cookies are sent if used
-      });
+      const res = await apiRequest('GET','/librarian/books',{},{token})
 
       console.log("Response:", res);
 
-      if (res.status === 200) {
+      if (res.success) {
         setAllBooks(res.data.data);
+      }else{
+        toast.error("Failed to fetch books: " + res.error);
       }
     } catch (error) {
       console.error(
@@ -93,21 +89,21 @@ const ManageBooks = () => {
         formData.append("book_image", data.book_image);
       }
 
-      const res = await axios.post(
-        import.meta.env.VITE_BASE_URL + "/librarian/add-book",
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("librarian_token")}`,
-            "Content-Type": "multipart/form-data",
-          },
-          withCredentials: true,
-        }
-      );
+      const res = await apiRequest('POST','/librarian/add-book',formData, {
+                                    token: localStorage.getItem("librarian_token"),
+                                    headers:{
+                                      "Content-Type": "multipart/form-data"
+                                    }
+                                  })
 
-      if (res.status === 201) {
+
+      if (res.success) {
         toast.success("Book added successfully");
         setModalState(false);
+        fetchingBooks();
+      }
+      else{
+        toast.error("Failed to add book: " + res.error);
       }
     } catch (error) {
       toast.error(error.response?.data?.error || "Error adding book");
@@ -127,10 +123,12 @@ const ManageBooks = () => {
           <div className={styles.table_heading}>
             <h3>Library List</h3>
             <div className={styles.filter_area}>
-              <Select
-                display="Search By"
-                options={["Library Name", "City", "State"]}
-              />
+              <div>
+                <Select
+                  display="Search By"
+                  options={["Library Name", "City", "State"]}
+                />
+              </div>
               <div className={styles.search_area}>
                 <Input type="text" placeholder="Search" />
                 <Button>Search</Button>
@@ -231,7 +229,7 @@ const ManageBooks = () => {
           </Button>
         </form>
       </Modal>
-
+      <ToastContainer />
       <DevTool control={control} />
     </>
   );

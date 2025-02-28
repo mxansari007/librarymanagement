@@ -96,6 +96,7 @@ const MemberLoginSignUp = () => {
     watch,
     setValue,
     formState: { errors: signUpErrors },
+    reset
   } = useForm({
     defaultValues: {
       firstName: "",
@@ -132,21 +133,20 @@ const MemberLoginSignUp = () => {
     }
 
     try {
-      const res = await axios.post(
-        import.meta.env.VITE_BASE_URL + "/member/signup",
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        }
-      );
+      const res = await apiRequest('POST','/member/signup',formData,{headers: { "Content-Type": "multipart/form-data" }  });
       
 
-      if (res.status === 201) {
-        notifySuccess("Signup successful! Please login.");
-        setPageState("login");
+      if (res.success) {
+        notifySuccess("Account Request Succesfull! You will be redirected to login Page.");
+        localStorage.setItem("pending_member", data.email);
+        setTimeout(()=>{
+          setPageState("login");   
+          setSelectLib(false);
+          reset();
+        }, 5000);
+      }else{
+        notifyError(res.error);
       }
-      setSelectLib(false);
-      navigate("/member/pending");
     } catch (error) {
       notifyError(error.response?.data?.error || "Signup failed.");
     }
@@ -163,24 +163,32 @@ const MemberLoginSignUp = () => {
 
       if (res.success) {
         console.log(res)
+
+        if(res.data.user.role!='member'){
+          toast.error("Only members can login from here")
+          return;
+        }
+
         localStorage.setItem("member_token", res.data.token);
         localStorage.setItem("user", JSON.stringify(res.data.user));
         localStorage.setItem("route", "Dashboard");
         navigate("/member/dashboard"); // Using the hook correctly
+      }else {
+
+        if (res.error == 'Account is not verified'){
+          notifyError(
+            "Your account has not been verified yet. Please check your email for verification link."
+          );
+          localStorage.setItem("pending_member", data.email);
+          navigate("/member/pending");
+          return;
+        }
+        throw new Error(res.error);
+
       }
+
     } catch (error) {
-      if (
-        error.response.data.verified == false ||
-        error.response.data.rejected == true
-      ) {
-        notifyError(
-          "Your account has not been verified yet. Please check your email for verification link."
-        );
-        localStorage.setItem("pending_member", data.email);
-        navigate("/member/pending");
-        return;
-      }
-      notifyError("Login failed. Check your credentials.");
+      notifyError(error.message);
     }
   };
 
@@ -198,9 +206,10 @@ const MemberLoginSignUp = () => {
           city: query, // Send city as per backend expectations
         }
         )
-
+        if(response.success){
         setLibraries(response.data.data);
         setShowDropdown(true);
+        }
       } catch (error) {
         console.error("Error fetching library data:", error);
       }

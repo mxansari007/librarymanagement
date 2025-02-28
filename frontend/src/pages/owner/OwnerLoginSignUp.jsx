@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form";
 import { DevTool } from "@hookform/devtools";
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
+import apiRequest from "../../utils/api";
 
 const OwnerLoginSignUp = () => {
   const [pageState, setPageState] = useState("login");
@@ -57,22 +58,19 @@ const OwnerLoginSignUp = () => {
     console.log("Sign Up Data:", data);
 
     try {
-      const res = await axios({
-        method: "post",
-        url: import.meta.env.VITE_BASE_URL + "/owner/signup",
-        data: {
-          firstName: data.firstName,
+      const res = await apiRequest("POST",'/owner/signup',{
+        firstName: data.firstName,
           lastName: data.lastName,
           email: data.email,
           password: data.password,
           plan_type: data.plan_type,
-        },
-        
-      })
+      },{})
 
-      if (res.status === 201) {
+      if (res.success) {
         console.log("Sign up success:", res.data);
         setPageState("login");
+      }else{
+        ErrorToast("Sign up failed: " + res.error);
       }
     } catch (error) {
       console.error("Sign up error:", error);
@@ -83,17 +81,13 @@ const OwnerLoginSignUp = () => {
     console.log("Login Data:", data);
 
     try {
-      const res = await axios({
-        method: "post",
-        url: import.meta.env.VITE_BASE_URL + "/user/login",
-        data: {
-          email: data.email,
-          password_hash: data.password,
-        },
-        withCredentials: true
-      });
+      const res = await apiRequest('POST','/user/login',{
+        email: data.email,
+        password_hash: data.password,
+      })
 
-      if (res.status === 200) {
+
+      if (res.success) {
 
         if(res.data.user.role === 'owner'){
 
@@ -107,6 +101,8 @@ const OwnerLoginSignUp = () => {
         }else {
             ErrorToast("Only owners can login from here")
         }
+      }else{
+        ErrorToast("Login failed: " + res.error)
       }
     }catch (error) {
         console.error("Login error:", error);

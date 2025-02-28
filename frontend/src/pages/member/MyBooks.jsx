@@ -1,14 +1,11 @@
-import { useState, useEffect, useRef } from "react";
-import PageHeader from "../../components/PageHeader";
-import { MyBooksTab } from "../../constants/tabs";
-import Tabs from "../../components/Tabs";
-import Table from "../../components/Table";
-import apiRequest from "../../utils/api";
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import {useState} from 'react'
+import PageHeader from "../../components/PageHeader"
+import { MyBooksTab } from "../../constants/tabs"
+import Tabs from "../../components/Tabs"
 
-const MyBooks = () => {
-  const [tabState, setTabState] = useState(1);
+const MyBooks = ()=>{
+
+    const [tabState, setTabState] = useState(1);
   const [borrowedBooks, setBorrowedBooks] = useState([]);
   const [requestedBooks, setRequestedBooks] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -143,23 +140,17 @@ const MyBooks = () => {
       <PageHeader title="My Books" />
       <Tabs data={MyBooksTab} tabState={tabState} setTabState={setTabState} />
 
-      {isLoading ? (
-        <div className="loading-container">
-          <p>Loading your books...</p>
+    {
+        tabState === 1 &&
+        <div>
+
+            
+
         </div>
-      ) : (
-        <Table
-          ColumnDef={columnDefinitions}
-          Data={tabState === 1 ? borrowedBooks : requestedBooks}
-          buttons={getActionButtons()}
-          imageKey={["book_image"]}
-          imageName={["Book Image"]}
-        />
-      )}
+    }
+    
+    </>)
+}
 
-      <ToastContainer />
-    </>
-  );
-};
 
-export default MyBooks;
+export default MyBooks

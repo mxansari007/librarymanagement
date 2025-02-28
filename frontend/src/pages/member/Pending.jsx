@@ -7,6 +7,7 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons";
+import apiRequest from "../../utils/api";
 
 const Pending = () => {
   const navigate = useNavigate();
@@ -35,45 +36,46 @@ const Pending = () => {
     }
 
     try {
-      const res = await axios.get(
-        `${import.meta.env.VITE_BASE_URL}/open/verify/${userEmail}`,
-        { withCredentials: true }
-      );
+      const res = await apiRequest('GET',`/open/verify/${userEmail}`)
 
-      if (res.status === 200 && res.data.verified) {
+
+
+      if (res.statusCode === 200 && res.data.verified) {
         toast.success(
           "Your Aadhaar card has been successfully verified. Redirecting to member page..."
         );
         localStorage.removeItem("pending_member");
         setTimeout(() => navigate("/member"), 2000);
+      }else{
+        if (res.statusCode === 403) {
+          // User rejected: Show reason on page
+          setIsRejected(true);
+          setRejectionReason(res.data.reason || "No reason provided");
+          toast.error("Your verification was rejected. See details below.");
+        } else if (res.statusCode === 401) {
+          // Still pending
+          setIsRejected(false); // Reset rejection state
+          setRejectionReason(""); // Clear reason
+          toast.info("Your account is still under verification. Please check back later.");
+        } else if (res.statusCode === 404) {
+          // User not found
+          setIsRejected(false);
+          setRejectionReason("");
+          toast.error("User not found. Please register again.");
+          setTimeout(() => navigate("/member"), 2000);
+        } else {
+          // Generic error
+          setIsRejected(false);
+          setRejectionReason("");
+          toast.error(
+            error.response?.data?.error || "An error occurred. Please try again later."
+          );
+  
+      }
       }
     } catch (error) {
       const errorData = error.response?.data;
 
-      if (error.response?.status === 403) {
-        // User rejected: Show reason on page
-        setIsRejected(true);
-        setRejectionReason(errorData.reason || "No reason provided");
-        toast.error("Your verification was rejected. See details below.");
-      } else if (error.response?.status === 401) {
-        // Still pending
-        setIsRejected(false); // Reset rejection state
-        setRejectionReason(""); // Clear reason
-        toast.info("Your account is still under verification. Please check back later.");
-      } else if (error.response?.status === 404) {
-        // User not found
-        setIsRejected(false);
-        setRejectionReason("");
-        toast.error("User not found. Please register again.");
-        setTimeout(() => navigate("/member"), 2000);
-      } else {
-        // Generic error
-        setIsRejected(false);
-        setRejectionReason("");
-        toast.error(
-          errorData?.error || "An error occurred. Please try again later."
-        );
-      }
     }
   };
 

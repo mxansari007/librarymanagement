@@ -41,7 +41,7 @@ const ManageTransactions = () => {
         "GET",
         "/librarian/book-requests?status=requested",
         {},
-        localStorage.getItem("librarian_token")
+        {token:localStorage.getItem("librarian_token")}
       );
 
       // Fetch borrowed books using status=approved parameter
@@ -49,7 +49,7 @@ const ManageTransactions = () => {
         "GET",
         "/librarian/book-requests?status=approved",
         {},
-        localStorage.getItem("librarian_token")
+        {token:localStorage.getItem("librarian_token")}
       );
 
       // Fetch returned books
@@ -57,7 +57,7 @@ const ManageTransactions = () => {
         "GET",
         "/librarian/returned-books",
         {},
-        localStorage.getItem("librarian_token")
+        {token:localStorage.getItem("librarian_token")}
       );
 
       if (requestedResponse.success) {
@@ -104,7 +104,7 @@ const ManageTransactions = () => {
         "POST",
         `/librarian/approve-book`,
         { request_id: row.id },
-        localStorage.getItem("librarian_token")
+        {token:localStorage.getItem("librarian_token")}
       );
 
       if (response.success) {
@@ -127,7 +127,7 @@ const ManageTransactions = () => {
         "POST",
         `/librarian/reject-book`,
         { request_id: row.id },
-        localStorage.getItem("librarian_token")
+        {token:localStorage.getItem("librarian_token")}
       );
 
       if (response.success) {
@@ -150,7 +150,7 @@ const ManageTransactions = () => {
         "POST",
         `/librarian/return-book`,
         { transaction_id: row.transaction_id },
-        localStorage.getItem("librarian_token")
+        {token:localStorage.getItem("librarian_token")}
       );
 
       if (response.success) {

@@ -2,14 +2,14 @@ import { useState } from "react";
 import { Outlet } from "react-router-dom";
 import Sidebar from "../../components/Sidebar";
 import styles from '../../styles/Dashboard.module.css';
-import { useNavigate } from "react-router-dom"
 import ownerOptions from '../../constants/sidebar';
 import { useEffect } from "react";
+import { useLogout } from "../../utils/auth";
 
 
 const OwnerDashboard = () => {
 
-    const navigate = useNavigate();
+    const logout = useLogout();
     const [user, setUser] = useState(null);
 
     useEffect(() => {
@@ -23,7 +23,7 @@ const OwnerDashboard = () => {
 
 
     const handleLogout = () => {
-        navigate('/owner');
+        logout('owner');
     }
 
 
