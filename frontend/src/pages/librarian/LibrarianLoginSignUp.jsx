@@ -9,7 +9,7 @@ import { DevTool } from '@hookform/devtools'
 import axios from 'axios'
 import { toast, ToastContainer } from'react-toastify';
 import { useNavigate } from'react-router-dom'
-
+import apiRequest from '../../utils/api.js'
 
 const LibrarianLoginSignUp = () => {
 
@@ -30,16 +30,12 @@ const LibrarianLoginSignUp = () => {
   const handleLogin = async (data) => {
 
     try{
-      const res = await axios({
-        method:"post",
-        url: import.meta.env.VITE_BASE_URL + "/user/login",
-        data: {
-          email: data.email,
-          password_hash: data.password,
-        },
-        withCredentials: true,
-      })
-      if(res.status === 200){
+      const res = await apiRequest("POST","/user/login",{
+        email: data.email,
+        password_hash: data.password,
+      },"")
+
+      if(res.success){
         localStorage.setItem("user", JSON.stringify(res.data.user));
         localStorage.setItem("librarian_token", res.data.token);
         localStorage.setItem("route","Dashboard")

@@ -4,10 +4,13 @@ import Sidebar from "../../components/Sidebar";
 import styles from '../../styles/Dashboard.module.css';
 import { useNavigate } from "react-router-dom"
 import {librarianOptions} from '../../constants/sidebar';
+import { useLogout } from "../../utils/auth";
+
 
 const LibrarianDashboard = () => {
 
     const navigate = useNavigate();
+    const logout = useLogout();
     const [user, setUser] = useState(null);
 
     useEffect(() => {
@@ -21,7 +24,7 @@ const LibrarianDashboard = () => {
 
 
     const handleLogout = () => {
-        navigate('/librarian');
+        logout('librarian');
     }
 
 

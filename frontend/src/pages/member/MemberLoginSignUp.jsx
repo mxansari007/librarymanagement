@@ -11,6 +11,7 @@ import { toast, ToastContainer } from "react-toastify";
 import Select from "../../components/Select";
 import axios from "axios";
 import { debounce } from "lodash";
+import apiRequest from "../../utils/api";
 
 const MemberLoginSignUp = () => {
   const navigate = useNavigate(); // Properly initialize the navigate hook
@@ -69,26 +70,7 @@ const MemberLoginSignUp = () => {
     }
   }, [searchText]);
 
-  // Debounce search input to optimize performance
-  const debouncedFetchLibraries = debounce((searchText) => {
-    if (searchText.length > 2) {
-      axios
-        .get(
-          `${
-            import.meta.env.VITE_BASE_URL
-          }/owner/libraries/search?search=${searchText}`
-        )
-        .then((response) => {
-          setLibraries(response.data.libraries);
-        });
-    } else {
-      setLibraries([]);
-    }
-  }, 500);
 
-  useEffect(() => {
-    debouncedFetchLibraries(searchText);
-  }, [searchText]);
 
   const handleLibrarySelect = (library) => {
     setSelectLib(false);
@@ -157,6 +139,7 @@ const MemberLoginSignUp = () => {
           headers: { "Content-Type": "multipart/form-data" },
         }
       );
+      
 
       if (res.status === 201) {
         notifySuccess("Signup successful! Please login.");
@@ -171,16 +154,15 @@ const MemberLoginSignUp = () => {
 
   const onSubmitLogin = async (data) => {
     try {
-      const res = await axios.post(
-        import.meta.env.VITE_BASE_URL + "/user/login",
+      const res = await apiRequest('POST','/user/login',
         {
           email: data.email,
           password_hash: data.password,
-        },
-        { withCredentials: true }
-      );
+        }
+      )
 
-      if (res.status === 200) {
+      if (res.success) {
+        console.log(res)
         localStorage.setItem("member_token", res.data.token);
         localStorage.setItem("user", JSON.stringify(res.data.user));
         localStorage.setItem("route", "Dashboard");
@@ -211,13 +193,11 @@ const MemberLoginSignUp = () => {
   const fetchLibraryData = debounce(async (query) => {
     if (query) {
       try {
-        const response = await axios.post(
-          import.meta.env.VITE_BASE_URL + "/open/libraries",
-          {
-            name: "", // Ensure `name` is included, even if empty
-            city: query, // Send city as per backend expectations
-          }
-        );
+        const response = await apiRequest('POST', '/open/libraries', {
+          name: "", // Ensure `name` is included, even if empty
+          city: query, // Send city as per backend expectations
+        }
+        )
 
         setLibraries(response.data.data);
         setShowDropdown(true);
