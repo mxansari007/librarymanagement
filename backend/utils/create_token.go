@@ -6,10 +6,11 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt"
+    "gorm.io/gorm"
 )
 
-// CreateToken generates a JWT token with userID, role, and optional libraryID
-func CreateToken(userID uint, role string, libraryID *uint) (string, error) {
+// CreateToken generates a JWT token with userID, role, and optional libraryID or membershipID
+func CreateToken(db *gorm.DB, userID uint, role string, libraryID *uint) (string, error) {
 	secretKey := os.Getenv("SECRET_KEY")
 	if secretKey == "" {
 		return "", errors.New("server configuration error: SECRET_KEY not set")
@@ -18,11 +19,34 @@ func CreateToken(userID uint, role string, libraryID *uint) (string, error) {
 	claims := jwt.MapClaims{
 		"user_id": userID,
 		"role":    role,
-		"exp":     time.Now().Add(time.Hour * 2).Unix(), // Token expires in 1 hour
+		"exp":     time.Now().Add(time.Hour * 2).Unix(), // Token expires in 2 hours
 	}
 
-	// Add libraryID if user is a librarian
-	if role == "librarian" && libraryID != nil  || role == "member" && libraryID!= nil {
+	// Fetch membership_id for members
+	if role == "member" {
+		var membership struct {
+			ID uint
+		}
+		if err := db.Table("library_memberships").Select("id").Where("member_id = ?", userID).First(&membership).Error; err == nil {
+			claims["membership_id"] = membership.ID
+		} else {
+			return "", errors.New("membership not found for the user")
+		}
+	}
+
+    if(role == "librarian"){
+        var librarian struct {
+            ID uint
+        }
+        if err := db.Table("librarians").Select("id").Where("user_id =?", userID).First(&librarian).Error; err == nil {
+            claims["librarian_id"] = librarian.ID
+        } else {
+            return "", errors.New("librarian not found for the user")
+        }
+    }
+
+	// Add library_id for librarians or members (if applicable)
+	if (role == "librarian" || role == "member") && libraryID != nil {
 		claims["library_id"] = *libraryID
 	}
 

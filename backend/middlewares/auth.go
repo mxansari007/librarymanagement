@@ -27,8 +27,6 @@ func AuthMiddleware(requiredRole string) gin.HandlerFunc {
 			return
 		}
 
-		
-
 		tokenStr := tokenParts[1]
 
 		// Get secret key from environment
@@ -67,22 +65,44 @@ func AuthMiddleware(requiredRole string) gin.HandlerFunc {
 			return
 		}
 
-		// Set values in context
+		// Set user details in context
 		c.Set("user_id", userID)
 		c.Set("role", role)
 
-
-		// Store library_id for librarians
-		if role == "librarian" || role == "member" {
+		// Store library_id for librarians and members
+		if (role == "librarian" || role == "member") {
 			libraryIDFloat, ok := claims["library_id"].(float64)
 			if !ok {
-				c.JSON(http.StatusUnauthorized, gin.H{"error": "Library ID missing for librarian"})
+				c.JSON(http.StatusUnauthorized, gin.H{"error": "Library ID missing"})
 				c.Abort()
 				return
 			}
 			c.Set("library_id", uint(libraryIDFloat))
 		}
 
+		if role == "librarian" {
+			librarianIDFloat, ok := claims["librarian_id"].(float64)
+            if!ok {
+                c.JSON(http.StatusUnauthorized, gin.H{"error": "Librarian ID missing"})
+                c.Abort()
+                return
+            }
+            c.Set("librarian_id", uint(librarianIDFloat))
+		}
+		
+
+		// Store membership_id for members
+		if role == "member" {
+			membershipIDFloat, ok := claims["membership_id"].(float64)
+			if !ok {
+				c.JSON(http.StatusUnauthorized, gin.H{"error": "Membership ID missing for member"})
+				c.Abort()
+				return
+			}
+			c.Set("membership_id", uint(membershipIDFloat))
+		}
+
 		c.Next()
 	}
 }
+

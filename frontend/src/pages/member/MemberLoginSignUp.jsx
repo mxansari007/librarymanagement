@@ -157,7 +157,7 @@ const MemberLoginSignUp = () => {
       const res = await apiRequest('POST','/user/login',
         {
           email: data.email,
-          password_hash: data.password,
+          password: data.password,
         }
       )
 

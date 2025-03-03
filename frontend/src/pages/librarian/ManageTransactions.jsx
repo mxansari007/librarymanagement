@@ -99,6 +99,7 @@ const ManageTransactions = () => {
       toast.error("No book selected");
       return;
     }
+    console.log(row)
 
     try {
       const dueDateFinal = isDefault ? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) : dueDate;

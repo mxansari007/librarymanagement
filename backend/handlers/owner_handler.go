@@ -13,79 +13,75 @@ import (
 )
 
 func SignupOwner(db *gorm.DB) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		var req struct {
-			FirstName string `json:"firstname" binding:"required"`
-			LastName  string `json:"lastname" binding:"required"`
-			Email     string `json:"email" binding:"required,email"`
-			Password  string `json:"password" binding:"required,min=8"`
-			PlanType  string `json:"plan_type" binding:"required,oneof=silver gold"`
-		}
+    return func(c *gin.Context) {
+        var req struct {
+            FirstName string `json:"firstname" binding:"required"`
+            LastName  string `json:"lastname" binding:"required"`
+            Email     string `json:"email" binding:"required,email"`
+            Password  string `json:"password" binding:"required,min=8"`
+            PlanType  string `json:"plan_type" binding:"required,oneof=silver gold"`
+        }
 
-		if err := c.ShouldBindJSON(&req); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
+        if err := c.ShouldBindJSON(&req); err != nil {
+            c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+            return
+        }
 
-		// Hash the password
-		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
-			return
-		}
+        hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+        if err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
+            return
+        }
 
-		// Create the owner
-		owner := models.User{
-			FirstName:    req.FirstName,
-			LastName:     req.LastName,
-			Email:        req.Email,
-			PasswordHash: string(hashedPassword),
-			Role:         "owner",
-		}
+        tx := db.Begin()
+        defer func() {
+            if r := recover(); r != nil {
+                tx.Rollback()
+            }
+        }()
 
-		// Start a database transaction
-		tx := db.Begin()
-		defer func() {
-			if r := recover(); r != nil {
-				tx.Rollback()
-			}
-		}()
+        owner := models.User{
+            FirstName:    req.FirstName,
+            LastName:     req.LastName,
+            Email:        req.Email,
+            PasswordHash: string(hashedPassword),
+            Role:         "owner",
+        }
 
-		// Save the owner
-		if err := tx.Create(&owner).Error; err != nil {
-			tx.Rollback()
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create owner"})
-			return
-		}
+        if err := tx.Create(&owner).Error; err != nil {
+            tx.Rollback()
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create owner"})
+            return
+        }
 
-		// Create the owner membership
-		startDate := time.Now()
-		endDate := startDate.AddDate(1, 0, 0) // 1 year membership
+        startDate := time.Now()
+        endDate := startDate.AddDate(1, 0, 0)
 
-		membership := models.OwnerMembership{
-			UserID:    owner.ID,
-			PlanType:  req.PlanType,
-			StartDate: startDate,
-			EndDate:   endDate,
-		}
+        membership := models.OwnerMembership{
+            UserID:    owner.ID,
+            PlanType:  req.PlanType,
+            StartDate: startDate,
+            EndDate:   endDate,
+        }
 
-		if err := tx.Create(&membership).Error; err != nil {
-			tx.Rollback()
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create owner membership"})
-			return
-		}
+        if err := tx.Create(&membership).Error; err != nil {
+            tx.Rollback()
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create owner membership"})
+            return
+        }
 
-		// Commit the transaction
-		tx.Commit()
+        if err := tx.Commit().Error; err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to commit transaction"})
+            return
+        }
 
-		c.JSON(http.StatusCreated, gin.H{
-			"message":       "Owner created successfully",
-			"owner_id":      owner.ID,
-			"membership_id": membership.ID,
-		})
-	}
+        c.JSON(http.StatusCreated, gin.H{
+            "message":       "Owner created successfully",
+            "owner_id":      owner.ID,
+            "membership_id": membership.ID,
+        })
+    }
 }
-
 
 // type Library struct {
 // 	ID               uint      `gorm:"primaryKey" json:"id"`
@@ -102,41 +98,38 @@ func CreateLibrary(db *gorm.DB) gin.HandlerFunc {
         var req struct {
             Name             string `json:"name" binding:"required"`
             Address          string `json:"address"`
-			City             string   `json:"city" binding:"required"`
-			SubscriptionType string `json:"subscription_type" binding:"required,oneof=free paid"`
-			Rate             uint   `json:"rate,omitempty"`
+            City             string `json:"city" binding:"required"`
+            SubscriptionType string `json:"subscription_type" binding:"required,oneof=free paid"`
+            Rate             uint   `json:"rate,omitempty"`
         }
-
-		// Bind the request body to the struct
-		
 
         if err := c.ShouldBindJSON(&req); err != nil {
             c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
             return
         }
 
-        // Get user ID from context (set by AuthMiddleware)
         userID, exists := c.Get("user_id")
         if !exists {
             c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
             return
         }
 
-        // Convert userID to uint
         ownerID, ok := userID.(uint)
         if !ok {
             c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid user ID format"})
             return
         }
 
-        // Create the library
         library := models.Library{
             OwnerID:          ownerID,
             Name:             req.Name,
             Address:          req.Address,
             City:             req.City,
-			SubscriptionType: req.SubscriptionType,
-			Rate:             req.Rate,
+            SubscriptionType: req.SubscriptionType,
+        }
+
+        if req.SubscriptionType == "paid" {
+            library.Rate = req.Rate
         }
 
         if err := db.Create(&library).Error; err != nil {
@@ -151,114 +144,114 @@ func CreateLibrary(db *gorm.DB) gin.HandlerFunc {
     }
 }
 
-
 //according to owner id which is user id
 
 func GetLibraries(db *gorm.DB) gin.HandlerFunc {
+    return func(c *gin.Context) {
+        userID, exists := c.Get("user_id")
+        if !exists {
+            c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+            return
+        }
 
-	return func(c *gin.Context) {
-		// Get user ID from context (set by AuthMiddleware)
-		userID, exists := c.Get("user_id")
-		if !exists {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-			return
-		}
+        ownerID, ok := userID.(uint)
+        if !ok {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid user ID format"})
+            return
+        }
 
-		// Convert userID to uint
-		ownerID, ok := userID.(uint)
-		if !ok {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid user ID format"})
-			return
-		}
+        var libraries []models.Library
+        if err := db.Where("owner_id = ?", ownerID).Find(&libraries).Error; err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve libraries"})
+            return
+        }
 
-		var libraries []models.Library
-		if err := db.Where("owner_id = ?", ownerID).Find(&libraries).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve libraries"})
-			return
-		}
-
-		c.JSON(http.StatusOK, gin.H{
-			"libraries": libraries,
-		})
-	}
+        c.JSON(http.StatusOK, gin.H{
+            "libraries": libraries,
+        })
+    }
 }
-
 func DeleteLibrary(db *gorm.DB) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		libraryID := c.Param("library_id")
-		if err := db.Where("id = ?", libraryID).Delete(&models.Library{}).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete library"})
-			return
-		}
+    return func(c *gin.Context) {
+        libraryID := c.Param("library_id")
 
-		c.JSON(http.StatusOK, gin.H{
-			"message": "Library deleted successfully",
-		})
-	}
+        userID, exists := c.Get("user_id")
+        if !exists {
+            c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+            return
+        }
+
+        ownerID, ok := userID.(uint)
+        if !ok {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid user ID format"})
+            return
+        }
+
+        if err := db.Where("id = ? AND owner_id = ?", libraryID, ownerID).Delete(&models.Library{}).Error; err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete library"})
+            return
+        }
+
+        c.JSON(http.StatusOK, gin.H{
+            "message": "Library deleted successfully",
+        })
+    }
 }
-
 //update only parameters which are given from frontend
 
 func UpdateLibrary(db *gorm.DB) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		libraryID := c.Param("library_id")
+    return func(c *gin.Context) {
+        libraryID := c.Param("library_id")
 
-		// Define struct for binding JSON
-		var req struct {
-			Name             *string  `json:"name"`
-			Address          *string  `json:"address"`
-			City             *string  `json:"city"`
-			SubscriptionType *string  `json:"subscription_type"`
-			Rate             *uint 	`json:"rate" binding:"required" `
-		}
-
-		
-
-		if err := c.ShouldBindJSON(&req); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-
-		// Create a map to store only provided fields
-		updateData := make(map[string]interface{})
-
-		if req.Name != nil {
-			updateData["name"] = *req.Name
-		}
-		if req.Address != nil {
-			updateData["address"] = *req.Address
-		}
-		if req.SubscriptionType != nil {
-			updateData["subscription_type"] = *req.SubscriptionType
-		}
-		if req.Rate != nil {
-			updateData["rate"] = *req.Rate
-		}
-		if req.City != nil {
-            updateData["city"] = *req.City
+        var req struct {
+            Name             *string `json:"name"`
+            Address          *string `json:"address"`
+            City             *string `json:"city"`
+            SubscriptionType *string `json:"subscription_type"`
+            Rate             *uint   `json:"rate"`
         }
 
-		// Only update if there are fields to update
-		if len(updateData) == 0 {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "No fields to update"})
-			return
-		}
+        if err := c.ShouldBindJSON(&req); err != nil {
+            c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+            return
+        }
 
-		// Update library with only provided fields
-		if err := db.Model(&models.Library{}).Where("id = ?", libraryID).Updates(updateData).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error":   "Failed to update library",
-				"details": err.Error(),  // Logs detailed error
-			})
-			return
-		}
+        updateData := make(map[string]interface{})
 
-		c.JSON(http.StatusOK, gin.H{
-			"message": "Library updated successfully",
-		})
-	}
+        if req.Name != nil {
+            updateData["name"] = *req.Name
+        }
+        if req.Address != nil {
+            updateData["address"] = *req.Address
+        }
+        if req.City != nil {
+            updateData["city"] = *req.City
+        }
+        if req.SubscriptionType != nil {
+            updateData["subscription_type"] = *req.SubscriptionType
+        }
+        if req.Rate != nil {
+            updateData["rate"] = *req.Rate
+        }
+
+        if len(updateData) == 0 {
+            c.JSON(http.StatusBadRequest, gin.H{"error": "No fields to update"})
+            return
+        }
+
+        if err := db.Model(&models.Library{}).Where("id = ?", libraryID).Updates(updateData).Error; err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{
+                "error":   "Failed to update library",
+                "details": err.Error(),
+            })
+            return
+        }
+
+        c.JSON(http.StatusOK, gin.H{
+            "message": "Library updated successfully",
+        })
+    }
 }
-
 
 func CreateLibrarian(db *gorm.DB) gin.HandlerFunc {
     return func(c *gin.Context) {
@@ -289,7 +282,6 @@ func CreateLibrarian(db *gorm.DB) gin.HandlerFunc {
             }
         }()
 
-        // Create the user
         user := models.User{
             FirstName:     req.FirstName,
             LastName:      req.LastName,
@@ -305,11 +297,10 @@ func CreateLibrarian(db *gorm.DB) gin.HandlerFunc {
             return
         }
 
-        // Create the librarian
         librarian := models.Librarian{
             UserID:    user.ID,
             LibraryID: req.LibraryID,
-			AssignedAt: time.Now(),
+            AssignedAt: time.Now(),
         }
 
         if err := tx.Create(&librarian).Error; err != nil {
@@ -330,23 +321,21 @@ func CreateLibrarian(db *gorm.DB) gin.HandlerFunc {
         })
     }
 }
-
 func GetAllLibrarians(db *gorm.DB) gin.HandlerFunc {
     return func(c *gin.Context) {
         type LibrarianWithUser struct {
             models.Librarian
-            FirstName     string     `json:"first_name"`
-            LastName      string     `json:"last_name"`
-            Email         string     `json:"email"`
-            Role          string     `json:"role"`
-            ContactNumber *string    `json:"contact_number"`
-            IsVerified    bool       `json:"is_verified"`
-            CreatedAt     time.Time  `json:"created_at"`
+            FirstName     string    `json:"first_name"`
+            LastName      string    `json:"last_name"`
+            Email         string    `json:"email"`
+            Role          string    `json:"role"`
+            ContactNumber *string   `json:"contact_number"`
+            IsVerified    bool      `json:"is_verified"`
+            CreatedAt     time.Time `json:"created_at"`
         }
-        
+
         var librariansWithUsers []LibrarianWithUser
-        
-        // Join librarians with users
+
         if err := db.Table("librarians").
             Select("librarians.*, users.first_name, users.last_name, users.email, users.role, users.contact_number, users.is_verified, users.created_at").
             Joins("JOIN users ON librarians.user_id = users.id").
@@ -354,8 +343,7 @@ func GetAllLibrarians(db *gorm.DB) gin.HandlerFunc {
             c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve librarians"})
             return
         }
-        
-        // Transform to the desired response format
+
         var response []gin.H
         for _, lib := range librariansWithUsers {
             librarianData := gin.H{
@@ -374,64 +362,86 @@ func GetAllLibrarians(db *gorm.DB) gin.HandlerFunc {
                     "created_at":     lib.CreatedAt,
                 },
             }
-            
             response = append(response, librarianData)
         }
-        
+
         c.JSON(http.StatusOK, gin.H{
             "librarians": response,
         })
     }
 }
-
 // fetch all users with role as members based on library ID and isVerified status
 
 
 
 // FetchMembers retrieves members based on library ID and optional verification status
 func FetchMembers(db *gorm.DB) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		// Extract and convert library ID
-		libraryID, err := strconv.Atoi(c.Param("library_id"))
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid library ID"})
-			return
-		}
+    return func(c *gin.Context) {
+        libraryID, err := strconv.Atoi(c.Param("library_id"))
+        if err != nil {
+            c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid library ID"})
+            return
+        }
 
-		// Extract optional verification status
-		isVerifiedStr := c.Query("is_verified")
-		var members []models.User
-		var query *gorm.DB
+        isVerifiedStr := c.Query("is_verified")
+        var members []models.User
+        query := db.Table("users").
+            Select("users.*").
+            Joins("JOIN library_memberships ON library_memberships.member_id = users.id").
+            Where("library_memberships.library_id = ?", libraryID)
 
-		// Base query with JOIN
-		query = db.Table("users").
-			Select("users.*").
-			Joins("JOIN library_memberships ON library_memberships.member_id = users.id").
-			Where("library_memberships.library_id = ?", libraryID)
+        if isVerifiedStr != "" {
+            isVerified, err := strconv.ParseBool(isVerifiedStr)
+            if err != nil {
+                c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid verification status"})
+                return
+            }
+            query = query.Where("users.is_verified = ?", isVerified)
+        }
 
-		// Apply filter if verification status is provided
-		if isVerifiedStr != "" {
-			isVerified, err := strconv.ParseBool(isVerifiedStr)
-			if err != nil {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid verification status"})
-				return
-			}
-			query = query.Where("users.is_verified = ?", isVerified)
-		}
+        if err := query.Find(&members).Error; err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Error fetching members"})
+            return
+        }
 
-		// Execute query
-		result := query.Find(&members)
-
-		// Handle database errors
-		if result.Error != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error fetching members"})
-			return
-		}
-
-		// Log retrieval details
-		log.Printf("Members retrieved: Library ID: %d, Count: %d, IsVerified: %s", libraryID, len(members), isVerifiedStr)
-
-		// Return members data
-		c.JSON(http.StatusOK, gin.H{"data": members})
-	}
+        log.Printf("Members retrieved: Library ID: %d, Count: %d, IsVerified: %s", libraryID, len(members), isVerifiedStr)
+        c.JSON(http.StatusOK, gin.H{"data": members})
+    }
 }
+
+
+func FetchDashboardValues(db *gorm.DB) gin.HandlerFunc {
+    return func(c *gin.Context) {
+        libraryID, err := strconv.Atoi(c.Param("library_id"))
+        if err != nil {
+            c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid library ID"})
+            return
+        }
+
+        var totalBooks int64
+        var availableBooks int64
+        var borrowedBooks int64
+
+        if err := db.Model(&models.Book{}).Where("library_id = ?", libraryID).Count(&totalBooks).Error; err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve total books"})
+            return
+        }
+
+        if err := db.Model(&models.Book{}).Where("library_id = ? AND available_copies > 0", libraryID).Count(&availableBooks).Error; err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve available books"})
+            return
+        }
+
+        if err := db.Model(&models.Book{}).Where("library_id = ? AND available_copies < total_copies", libraryID).Count(&borrowedBooks).Error; err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve borrowed books"})
+            return
+        }
+
+        c.JSON(http.StatusOK, gin.H{
+            "total_books":     totalBooks,
+            "available_books": availableBooks,
+            "borrowed_books":  borrowedBooks,
+        })
+    }
+}
+

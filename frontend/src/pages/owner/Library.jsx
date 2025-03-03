@@ -83,30 +83,28 @@ const OwnerManageLibrary = () => {
 
   const createLibrary = async (data) => {
     try {
-      const res = await apiRequest("POST", '/owner/create-library', {
-        first_name: data.firstName,
-        last_name: data.lastName,
-        email: data.email,
-        password: data.password,
-        library_id: Number(data.libraryId),
-        contact_number: data.contactNumber,
-        },
-        {token: localStorage.getItem("owner_token")}
-      )
+        const res = await apiRequest("POST", "/owner/create-library", {
+            name: data.libraryName,
+            address: data.libraryAddress,
+            city: data.city,
+            subscription_type: data.subscription_type,
+            rate: data.rate ? Number(data.rate) : 0,
+        }, {
+            token: localStorage.getItem("owner_token")
+        });
 
-
-      if (res.success) {
-        notifySuccess("Library created successfully");
-        fetchLibraries();
-        setModalState(false);
-        reset();
-      }else{
-        notifyError("Library creation failed",res.error);
-      }
+        if (res.success) {
+            notifySuccess("Library created successfully");
+            fetchLibraries();
+            setModalState(false);
+            reset();
+        } else {
+            notifyError("Library creation failed", res.error);
+        }
     } catch (error) {
-      notifyError("Library creation failed");
+        notifyError("Library creation failed");
     }
-  };
+};
 
   const deleteLibrary = async (row) => {
     try {

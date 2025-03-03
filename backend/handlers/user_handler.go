@@ -7,6 +7,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/mxansari007/librarymanagement/models"
 	"gorm.io/gorm"
+    "strconv"
+    "time"
 
 )
 
@@ -82,3 +84,72 @@ func IsVerified(db *gorm.DB) gin.HandlerFunc {
 }
 
 
+func GetLibraryDashboard(db *gorm.DB) gin.HandlerFunc {
+    return func(c *gin.Context) {
+        // Get library ID from request params
+        libraryID, err := strconv.Atoi(c.Param("library_id"))
+        if err != nil {
+            c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid library ID"})
+            return
+        }
+
+        var totalBooks, totalMembers, totalIssuedBooks, totalOverdueBooks, totalLibrarians int64
+        var totalAvailableCopies int64
+
+        // Get total books in library by summing TotalCopies
+        if err := db.Model(&models.Book{}).
+            Where("library_id = ?", libraryID).
+            Select("SUM(total_copies)").Scan(&totalBooks).Error; err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch total books"})
+            return
+        }
+
+        // Get total members in library
+        if err := db.Model(&models.LibraryMembership{}).Where("library_id = ?", libraryID).Count(&totalMembers).Error; err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch total members"})
+            return
+        }
+
+        // Get total issued books by joining BookTransaction with Book table
+        if err := db.Model(&models.BookTransaction{}).
+            Joins("JOIN books ON books.id = book_transactions.book_id").
+            Where("books.library_id = ? AND book_transactions.returned_at IS NULL", libraryID).
+            Count(&totalIssuedBooks).Error; err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch total issued books"})
+            return
+        }
+
+        // Get total overdue books (due_date < today and not returned)
+        if err := db.Model(&models.BookTransaction{}).
+            Joins("JOIN books ON books.id = book_transactions.book_id").
+            Where("books.library_id = ? AND book_transactions.returned_at IS NULL AND book_transactions.due_date < ?", libraryID, time.Now()).
+            Count(&totalOverdueBooks).Error; err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch total overdue books"})
+            return
+        }
+
+        // Get total librarians
+        if err := db.Model(&models.Librarian{}).Where("library_id = ?", libraryID).Count(&totalLibrarians).Error; err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch total librarians"})
+            return
+        }
+
+        // Get total available copies of all books in the library
+        if err := db.Model(&models.Book{}).
+            Where("library_id = ?", libraryID).
+            Select("SUM(available_copies)").Scan(&totalAvailableCopies).Error; err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch total available copies"})
+            return
+        }
+
+        // Return response
+        c.JSON(http.StatusOK, gin.H{
+            "total_books":           totalBooks,
+            "total_members":         totalMembers,
+            "total_issued_books":    totalIssuedBooks,
+            "total_overdue_books":   totalOverdueBooks,
+            "total_librarians":      totalLibrarians,
+            "total_available_books": totalAvailableCopies,
+        })
+    }
+}

@@ -36,6 +36,7 @@ func SetupRoutes(router *gin.Engine) {
 	
 	librarian := router.Group("/librarian")
 	{
+		librarian.GET("/get-dashboard/:library_id", handlers.GetLibraryDashboard(db.DB))
 		librarian.GET("/fetch-members/:library_id", handlers.FetchMembers(db.DB))
 		librarian.Use(middlewares.AuthMiddleware("librarian"))
         librarian.POST("/add-book", handlers.CreateBook(db.DB))
