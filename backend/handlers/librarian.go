@@ -141,13 +141,6 @@ func GetBookByID(db *gorm.DB) gin.HandlerFunc {
     }
 }
 
-
-//  make api to change status of member from isVerified to true
-// so the thing is i have two buttons in my frontend one for approve and one for reject
-// if i click on approve button then the status of the member should change to true
-// if i click on reject button then delete that member from the database which is in first delete entry from library_memberships table then delete from users table
-// so i have to make two apis for this one for approve and one for reject
-
 func ChangeStatus(db *gorm.DB) gin.HandlerFunc {
     return func(c *gin.Context) {
         var user models.User
@@ -228,30 +221,6 @@ func DeleteMember(db *gorm.DB) gin.HandlerFunc {
         c.JSON(http.StatusOK, gin.H{"message": "User deleted"})
     }
 }
-
-// func GetLibraryBookRequests(db *gorm.DB) gin.HandlerFunc {
-//     return func(c *gin.Context) {
-//         type LibraryRequestInput struct {
-//             LibraryID uint `json:"library_id" binding:"required"`
-//         }
-
-//         var input LibraryRequestInput
-//         if err := c.ShouldBindJSON(&input); err != nil {
-//             c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input: " + err.Error()})
-//             return
-//         }
-
-//         var bookRequests []models.BookRequest
-//         if err := db.Joins("JOIN books ON books.id = book_requests.book_id").
-//             Where("books.library_id = ?", input.LibraryID).
-//             Find(&bookRequests).Error; err != nil {
-//             c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch book requests"})
-//             return
-//         }
-
-//         c.JSON(http.StatusOK, gin.H{"book_requests": bookRequests})
-//     }
-// }
 
 func GetLibraryBookRequests(db *gorm.DB) gin.HandlerFunc {
     return func(c *gin.Context) {
@@ -361,24 +330,31 @@ func ApproveBookRequest(db *gorm.DB) gin.HandlerFunc {
             c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication required"})
             return
         }
-        
+
         librarianID, ok := librarianIDRaw.(uint)
         if !ok {
             c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid librarian ID format"})
             return
         }
-        
+
         type ApproveRequestInput struct {
             RequestID uint      `json:"request_id" binding:"required"`
             DueDate   time.Time `json:"due_date"`
         }
-        
+
         var input ApproveRequestInput
         if err := c.ShouldBindJSON(&input); err != nil {
             c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input: " + err.Error()})
             return
         }
         log.Printf("Approving book request: Request ID: %v, Librarian ID: %v", input.RequestID, librarianID)
+
+        // Ensure the librarian exists before proceeding
+        var librarian models.Librarian
+        if err := db.First(&librarian, librarianID).Error; err != nil {
+            c.JSON(http.StatusNotFound, gin.H{"error": "Librarian not found"})
+            return
+        }
 
         var bookRequest models.BookRequest
         if err := db.First(&bookRequest, input.RequestID).Error; err != nil {
@@ -398,17 +374,13 @@ func ApproveBookRequest(db *gorm.DB) gin.HandlerFunc {
             return
         }
 
-        // Ensure the librarian exists before proceeding
-        var librarian models.Librarian
-        if err := db.First(&librarian, librarianID).Error; err != nil {
-            c.JSON(http.StatusNotFound, gin.H{"error": "Librarian not found"})
+        // Start a new transaction to ensure atomicity
+        tx := db.Begin()
+        if tx.Error != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to start transaction"})
             return
         }
 
-        // Start a new transaction to ensure atomicity
-        tx := db.Begin()
-
-        // Rollback the transaction in case of failure
         defer func() {
             if r := recover(); r != nil {
                 tx.Rollback()
@@ -430,11 +402,13 @@ func ApproveBookRequest(db *gorm.DB) gin.HandlerFunc {
                 LibrarianID: &librarianID,
             }).Error; err != nil {
             tx.Rollback()
-            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update book request" + err.Error()})
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update book request: " + err.Error()})
             return
         }
 
         // Create a new book transaction
+        var returnedAt *time.Time // Nil by default
+
         bookTransaction := models.BookTransaction{
             BookID:           bookRequest.BookID,
             MembershipID:     bookRequest.MembershipID,
@@ -442,25 +416,28 @@ func ApproveBookRequest(db *gorm.DB) gin.HandlerFunc {
             BorrowedAt:       approvedAt,
             DueDate:          dueDate,
             IsReturnApproved: false,
+            ReturnedAt:       returnedAt, // Using a pointer to allow nil
         }
 
         if err := tx.Create(&bookTransaction).Error; err != nil {
             tx.Rollback()
-            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create book transaction"})
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create book transaction: " + err.Error()})
             return
         }
 
         // Update the available copies of the book
         if err := tx.Model(&book).
-            Where("id = ?", bookRequest.BookID).
             UpdateColumn("available_copies", gorm.Expr("available_copies - 1")).Error; err != nil {
             tx.Rollback()
-            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update book availability"})
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update book availability: " + err.Error()})
             return
         }
 
         // Commit the transaction if everything is successful
-        tx.Commit()
+        if err := tx.Commit().Error; err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to commit transaction: " + err.Error()})
+            return
+        }
 
         // Return success response
         c.JSON(http.StatusOK, gin.H{
@@ -469,6 +446,7 @@ func ApproveBookRequest(db *gorm.DB) gin.HandlerFunc {
         })
     }
 }
+
 
 
 func ReturnBook(db *gorm.DB) gin.HandlerFunc {

@@ -106,3 +106,9 @@
         gap: 0.5rem;
     }
 }
+
+
+.loading{
+    width:25px !important;
+    height: 25px !important;
+}

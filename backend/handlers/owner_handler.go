@@ -10,8 +10,33 @@ import (
 	"gorm.io/gorm"
 	"strconv"
 	"log"
+    _ "github.com/mxansari007/librarymanagement/docs"
 )
 
+
+
+
+// OwnerSignupRequest represents the request body for signing up an owner.
+type OwnerSignupRequest struct {
+    FirstName string `json:"firstname" binding:"required"`
+    LastName  string `json:"lastname" binding:"required"`
+    Email     string `json:"email" binding:"required,email"`
+    Password  string `json:"password" binding:"required,min=8"`
+    PlanType  string `json:"plan_type" binding:"required,oneof=silver gold"`
+}
+
+// SignupOwner handles owner registration.
+//
+// @Summary Signup a new owner
+// @Description Register a new owner with first name, last name, email, password, and plan type.
+// @Tags Owner
+// @Accept json
+// @Produce json
+// @Param request body OwnerSignupRequest true "Owner Signup Request"
+// @Success 201 {object} map[string]interface{} "Owner created successfully"
+// @Failure 400 {object} map[string]string "Invalid request body"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /owner/signup [post]
 func SignupOwner(db *gorm.DB) gin.HandlerFunc {
     return func(c *gin.Context) {
         var req struct {
@@ -83,14 +108,6 @@ func SignupOwner(db *gorm.DB) gin.HandlerFunc {
     }
 }
 
-// type Library struct {
-// 	ID               uint      `gorm:"primaryKey" json:"id"`
-// 	OwnerID          uint      `gorm:"not null" json:"owner_id"`
-// 	Name             string    `gorm:"not null" json:"name"`
-// 	Address          string    `json:"address"`
-// 	SubscriptionType string    `gorm:"not null" json:"subscription_type"`
-// 	CreatedAt        time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
-// }
 
 
 func CreateLibrary(db *gorm.DB) gin.HandlerFunc {
@@ -120,8 +137,15 @@ func CreateLibrary(db *gorm.DB) gin.HandlerFunc {
             return
         }
 
+        // Check if owner exists in owner_memberships table
+        var ownerMembership models.OwnerMembership
+        if err := db.Where("user_id = ?", ownerID).First(&ownerMembership).Error; err != nil {
+            c.JSON(http.StatusForbidden, gin.H{"error": "Owner does not exist or is not authorized to create a library"})
+            return
+        }
+
         library := models.Library{
-            OwnerID:          ownerID,
+            OwnerID:          ownerMembership.ID,
             Name:             req.Name,
             Address:          req.Address,
             City:             req.City,
@@ -148,7 +172,7 @@ func CreateLibrary(db *gorm.DB) gin.HandlerFunc {
 
 func GetLibraries(db *gorm.DB) gin.HandlerFunc {
     return func(c *gin.Context) {
-        userID, exists := c.Get("user_id")
+        userID, exists := c.Get("owner_id")
         if !exists {
             c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
             return
@@ -175,7 +199,7 @@ func DeleteLibrary(db *gorm.DB) gin.HandlerFunc {
     return func(c *gin.Context) {
         libraryID := c.Param("library_id")
 
-        userID, exists := c.Get("user_id")
+        userID, exists := c.Get("owner_id")
         if !exists {
             c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
             return
@@ -269,6 +293,20 @@ func CreateLibrarian(db *gorm.DB) gin.HandlerFunc {
             return
         }
 
+        // Retrieve the authenticated owner's ID from the context
+        ownerID, exists := c.Get("owner_id")
+        if !exists {
+            c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+            return
+        }
+
+        // Check if the Library exists and belongs to the authenticated owner
+        var library models.Library
+        if err := db.Where("id = ? AND owner_id = ?", req.LibraryID, ownerID).First(&library).Error; err != nil {
+            c.JSON(http.StatusForbidden, gin.H{"error": "Library does not belong to this owner or does not exist"})
+            return
+        }
+
         hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
         if err != nil {
             c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
@@ -321,8 +359,17 @@ func CreateLibrarian(db *gorm.DB) gin.HandlerFunc {
         })
     }
 }
-func GetAllLibrarians(db *gorm.DB) gin.HandlerFunc {
+
+
+
+func GetOwnerLibrarians(db *gorm.DB) gin.HandlerFunc {
     return func(c *gin.Context) {
+        ownerID, exists := c.Get("owner_id") // Assuming owner_id is set via middleware
+        if !exists {
+            c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+            return
+        }
+
         type LibrarianWithUser struct {
             models.Librarian
             FirstName     string    `json:"first_name"`
@@ -336,14 +383,18 @@ func GetAllLibrarians(db *gorm.DB) gin.HandlerFunc {
 
         var librariansWithUsers []LibrarianWithUser
 
+        // Fetch librarians belonging to libraries owned by the given owner
         if err := db.Table("librarians").
             Select("librarians.*, users.first_name, users.last_name, users.email, users.role, users.contact_number, users.is_verified, users.created_at").
             Joins("JOIN users ON librarians.user_id = users.id").
+            Joins("JOIN libraries ON librarians.library_id = libraries.id").
+            Where("libraries.owner_id = ?", ownerID). // Get only the owner’s librarians
             Scan(&librariansWithUsers).Error; err != nil {
             c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve librarians"})
             return
         }
 
+        // Construct response
         var response []gin.H
         for _, lib := range librariansWithUsers {
             librarianData := gin.H{
@@ -370,6 +421,8 @@ func GetAllLibrarians(db *gorm.DB) gin.HandlerFunc {
         })
     }
 }
+
+
 // fetch all users with role as members based on library ID and isVerified status
 
 

@@ -2,196 +2,162 @@
 
 /* Container for the table with scrolling */
 .table_container {
-    width: 100%;
-    overflow-x: auto;
-    /* Enables horizontal scrolling if needed */
-    max-width: 100%;
-    /* Prevents layout overflow */
-    padding: 10px;
-    /* Adds subtle breathing room */
-    background-color: var(--color-background);
-    /* Soft off-white background */
-    border-radius: 12px;
-    /* Softer corners */
-    box-shadow: 0px 4px 16px var(--color-shadow);
-    /* Gentle shadow for depth */
+width: 100%;
+overflow-x: auto;
+max-width: 100%;
+padding: 10px;
+background-color: var(--color-background);
+border-radius: 12px;
+box-shadow: 0px 4px 16px var(--color-shadow);
 }
 
 /* Base table styles */
 .table {
-    width: 100%;
-    border-collapse: collapse;
-    min-width: 700px;
-    /* Maintains a reasonable minimum width */
-    font-family: 'Arial', sans-serif;
-    /* Clean, readable font */
+width: 100%;
+border-collapse: collapse;
+min-width: 700px;
+font-family: 'Arial', sans-serif;
 }
 
 /* Header styling */
 thead {
-    background-color: var(--color-primary-faded);
-    /* Subtle pastel blue */
-    border-bottom: 1px solid var(--color-border);
-    /* Softer border */
+background-color: var(--color-primary-faded);
+border-bottom: 1px solid var(--color-border);
 }
 
 thead th {
-    padding: 1.2em 1.5em;
-    /* More spacious padding */
-    text-align: left;
-    font-weight: 500;
-    /* Medium weight for elegance */
-    color: var(--color-neutral);
-    /* Sophisticated gray */
-    text-transform: uppercase;
-    /* Subtle emphasis */
-    font-size: 0.9rem;
-    /* Slightly smaller for refinement */
+padding: 1em 1.2em;
+text-align: left;
+font-weight: 500;
+color: var(--color-neutral);
+text-transform: uppercase;
+font-size: 0.9rem;
+
 }
 
 /* Body styling */
 tbody {
-    background-color: white;
+background-color: white;
 }
 
 tbody tr {
-    border-bottom: 1px solid var(--color-border);
-    transition: all 0.2s ease-in-out;
-    /* Smooth transition for all properties */
+border-bottom: 1px solid var(--color-border);
+transition: all 0.2s ease-in-out;
 }
 
 tbody tr:hover {
-    background-color: var(--color-gentle-hover);
-    /* Very light gray hover (#F1F3F5) */
-    box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.06);
-    /* Subtle shadow instead of translate */
+background-color: var(--color-gentle-hover);
+box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.06);
 }
+
 td {
-    padding: 1.2em 1.5em;
-    /* Consistent, generous padding */
-    text-align: left;
-    white-space: nowrap;
-    /* Prevents wrapping */
-    color: var(--color-neutral);
-    /* Calm gray for text */
-    font-size: 1rem;
-    /* Readable size */
+padding: 1em 1.2em;
+text-align: left;
+white-space: nowrap;
+color: var(--color-neutral);
+font-size: 1rem;
 }
 
 /* Image styling */
 td img {
-    border-radius: 8px;
-    /* Softer image corners */
-    max-width: 100px;
-    /* Controlled size */
-    height: auto;
-    box-shadow: 0px 2px 6px var(--color-shadow);
-    /* Subtle image shadow */
-    transition: transform 0.2s ease-in-out;
-    /* Smooth hover effect */
+border-radius: 8px;
+max-width: 100px;
+height: auto;
+box-shadow: 0px 2px 6px var(--color-shadow);
+transition: transform 0.2s ease-in-out;
 }
 
 td img:hover {
-    transform: scale(1.05);
-    /* Slight zoom on hover */
+transform: scale(1.05);
 }
 
 /* No data state */
 tbody tr td[colspan] {
-    padding: 2em;
-    text-align: center;
-    color: var(--color-neutral);
-    /* Gray for calm "no data" message */
-    font-style: italic;
-    /* Graceful touch */
-    font-size: 1.1rem;
+padding: 2em;
+text-align: center;
+color: var(--color-neutral);
+font-style: italic;
+font-size: 1.1rem;
 }
 
-/* Button adjustments (assuming Button component accepts these styles) */
+/* Adjusted button styles */
 td button {
-    padding: 8px 16px;
-    /* Balanced padding */
-    border-radius: 8px;
-    /* Softer corners */
-    font-size: 0.9rem;
-    transition: all 0.2s ease-in-out;
-    /* Smooth transitions */
+padding: 6px 12px;
+border-radius: 6px;
+font-size: 0.85rem;
+transition: all 0.2s ease-in-out;
+min-width: 80px;
+height: 32px;
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+font-weight: 500;
 }
 
 td button:hover {
-    transform: translateY(-1px);
-    /* Subtle lift */
-    box-shadow: 0px 3px 8px var(--color-shadow);
-    /* Gentle shadow */
+transform: translateY(-1px);
+box-shadow: 0px 2px 6px var(--color-shadow);
 }
 
-.action_col{
-    display: flex;
-    flex-direction: column;
-    gap: 0.5em;
+.action_col {
+display: flex;
+flex-direction: column;
+gap: 0.5em;
+flex-wrap: wrap;
 }
 
 /* Responsive adjustments */
 @media screen and (max-width: 1024px) {
-    .table {
-        min-width: 90%;
-        /* Slightly more flexible */
-    }
-
-    thead th,
-    td {
-        padding: 1em 1.2em;
-        /* Adjusted padding */
-    }
+.table {
+min-width: 90%;
+}
+thead th,
+td {
+padding: 0.9em 1.1em;
+}
 }
 
 @media screen and (max-width: 768px) {
-    .table_container {
-        padding: 8px;
-    }
-
-    .table {
-        min-width: 700px;
-        /* Maintains readability */
-    }
-
-    thead th,
-    td {
-        padding: 0.9em 1em;
-        font-size: 0.95rem;
-        /* Slightly smaller text */
-    }
-
-    td img {
-        max-width: 80px;
-        /* Smaller images */
-    }
+.table_container {
+padding: 8px;
+}
+.table {
+min-width: 700px;
+}
+thead th,
+td {
+padding: 0.8em 1em;
+font-size: 0.9rem;
+}
+td img {
+max-width: 80px;
+}
+td button {
+padding: 5px 10px;
+font-size: 0.8rem;
+height: 28px;
+}
 }
 
 @media screen and (max-width: 600px) {
-    .table_container {
-        padding: 5px;
-    }
-
-    .table {
-        min-width: 600px;
-    }
-
-    thead th,
-    td {
-        padding: 0.7em 0.9em;
-        font-size: 0.85rem;
-        /* Compact but readable */
-    }
-
-    td button {
-        padding: 6px 12px;
-        /* Smaller buttons */
-        font-size: 0.85rem;
-    }
-
-    td img {
-        max-width: 60px;
-        /* Compact images */
-    }
+.table_container {
+padding: 5px;
+}
+.table {
+min-width: 600px;
+}
+thead th,
+td {
+padding: 0.7em 0.9em;
+font-size: 0.85rem;
+}
+td button {
+padding: 4px 8px;
+font-size: 0.75rem;
+height: 26px;
+}
+td img {
+max-width: 60px;
+}
 }

@@ -8,7 +8,7 @@ import styles from "../../styles/RequestBook.module.css";
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 const RequestBook = () => {
-  const [searchType, setSearchType] = useState("Name");
+  const [searchType, setSearchType] = useState("name");
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
@@ -31,16 +31,16 @@ const RequestBook = () => {
 
     try {
       // Construct the API endpoint based on search type
-      let endpoint = import.meta.env.VITE_BASE_URL + "/member/fetch-book";
+      let endpoint = import.meta.env.VITE_BASE_URL + "/member/fetch-book?";
 
       switch (searchType) {
-        case "Name":
-          endpoint += `?title=${encodeURIComponent(searchQuery)}`;
+        case "name":
+          endpoint += `title=${encodeURIComponent(searchQuery)}`;
           break;
-        case "ISBN":
+        case "isbn":
           endpoint += `isbn=${encodeURIComponent(searchQuery)}`;
           break;
-        case "Author":
+        case "author":
           endpoint += `author=${encodeURIComponent(searchQuery)}`;
           break;
         default:
@@ -122,7 +122,7 @@ const RequestBook = () => {
             <Select
               label={"Select Search Type"}
               variant={"big"}
-              options={["Name", "ISBN", "Author"]}
+              options={[{label:"Name",value:"name"}, {label:"ISBN",value:"isbn"}, {label:"Author",value:"author"}]}
               value={searchType}
               onChange={handleSearchTypeChange}
               className={styles.selectField}

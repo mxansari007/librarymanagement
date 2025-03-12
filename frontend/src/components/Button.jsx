@@ -1,3 +1,4 @@
+import React from "react";
 import styles from  '../styles/Button.module.css'
 
 const Button = ({ children, onClick,disabled,variant,loading }) => {
@@ -16,7 +17,9 @@ const Button = ({ children, onClick,disabled,variant,loading }) => {
           ${styles.secondary_button}
           ${disabled?styles.primary_button_disabled:null}`}
         onClick={onClick}>{children}</button>    
-        :<button className={`
+        :<button 
+        disabled={disabled}
+        className={`
         ${styles.primary_button}`} 
         onClick={onClick}>{children}</button>
     }

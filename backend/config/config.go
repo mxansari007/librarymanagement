@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/joho/godotenv"
+	"path/filepath"
 )
 
 // Config holds the application configuration
@@ -23,12 +24,21 @@ type DBConfig struct {
 	SSLMode  string
 }
 
-// LoadConfig loads configuration from .env file
+// LoadConfig loads configuration from the appropriate .env file
 func LoadConfig() *Config {
-	// Load .env file
-	err := godotenv.Load(".env")
+	env := os.Getenv("GO_ENV")
+
+	var envFile string
+	if env == "test" {
+		wd, _ := os.Getwd()
+		envFile = filepath.Join(wd, "..", ".env.test") 
+	} else {
+		envFile = ".env" // Load default environment variables
+	}
+
+	err := godotenv.Load(envFile)
 	if err != nil {
-		log.Fatalf("Error loading .env file: %v", err)
+		log.Fatalf("Error loading %s file: %v", envFile, err)
 	}
 
 	return &Config{

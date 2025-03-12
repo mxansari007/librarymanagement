@@ -1,3 +1,4 @@
+import React from 'react';
 import {useState,useEffect} from 'react'
 import Button from './Button';
 import styles from '../styles/Pagination.module.css'

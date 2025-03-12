@@ -4,6 +4,9 @@ import styles from '../../styles/OwnerDashHome.module.css'
 import Table from "../../components/Table"
 import Button from "../../components/Button"
 import apiRequest from '../../utils/api'
+import {faHandHoldingHand, faClock,faBook,faUser} from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+
 
 
 const rowDatas = [
@@ -89,28 +92,36 @@ const LibrarianHome = () => {
 
         <div className={styles.status_area}>
             <div className={styles.status}>
-                <div className={styles.status_icon}></div>
+                <div className={styles.status_icon}>
+                    <FontAwesomeIcon icon={faUser} />
+                </div>
                 <div>
                 <h4>Members</h4>
                 <p>{dashboardData?dashboardData.total_members:null}</p>
                 </div>
             </div>
             <div className={styles.status}>
-            <div className={styles.status_icon}></div>
+            <div className={styles.status_icon}>
+                <FontAwesomeIcon icon={faBook} />
+            </div>
                 <div>
                 <h4>Books</h4>
                 <p>{dashboardData?.total_books}</p>
                 </div>
             </div>
             <div className={styles.status}>
-            <div className={styles.status_icon}></div>
+            <div className={styles.status_icon}>
+                <FontAwesomeIcon icon={faHandHoldingHand} />
+            </div>
                 <div>
                 <h4>Borowers</h4>
                 <p>{dashboardData?.total_issued_books}</p>
                 </div>
             </div>
             <div className={styles.status}>
-            <div className={styles.status_icon}></div>
+            <div className={styles.status_icon}>
+                <FontAwesomeIcon icon={faClock} />
+            </div>
                 <div>
                 <h4>Overdue</h4>
                 <p>{dashboardData?.total_overdue_books}</p>

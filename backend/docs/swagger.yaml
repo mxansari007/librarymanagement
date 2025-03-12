@@ -1,0 +1,64 @@
+definitions:
+  handlers.OwnerSignupRequest:
+    properties:
+      email:
+        type: string
+      firstname:
+        type: string
+      lastname:
+        type: string
+      password:
+        minLength: 8
+        type: string
+      plan_type:
+        enum:
+        - silver
+        - gold
+        type: string
+    required:
+    - email
+    - firstname
+    - lastname
+    - password
+    - plan_type
+    type: object
+info:
+  contact: {}
+paths:
+  /owner/signup:
+    post:
+      consumes:
+      - application/json
+      description: Register a new owner with first name, last name, email, password,
+        and plan type.
+      parameters:
+      - description: Owner Signup Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.OwnerSignupRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Owner created successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request body
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Signup a new owner
+      tags:
+      - Owner
+swagger: "2.0"

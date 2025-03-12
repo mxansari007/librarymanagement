@@ -27,23 +27,33 @@ func CreateToken(db *gorm.DB, userID uint, role string, libraryID *uint) (string
 		var membership struct {
 			ID uint
 		}
-		if err := db.Table("library_memberships").Select("id").Where("member_id = ?", userID).First(&membership).Error; err == nil {
-			claims["membership_id"] = membership.ID
-		} else {
+		if err := db.Table("library_memberships").Select("id").Where("member_id = ?", userID).First(&membership).Error; err != nil {
 			return "", errors.New("membership not found for the user")
 		}
+		claims["membership_id"] = membership.ID
 	}
 
-    if(role == "librarian"){
-        var librarian struct {
-            ID uint
-        }
-        if err := db.Table("librarians").Select("id").Where("user_id =?", userID).First(&librarian).Error; err == nil {
-            claims["librarian_id"] = librarian.ID
-        } else {
-            return "", errors.New("librarian not found for the user")
-        }
-    }
+	// Fetch librarian_id for librarians
+	if role == "librarian" {
+		var librarian struct {
+			ID uint
+		}
+		if err := db.Table("librarians").Select("id").Where("user_id = ?", userID).First(&librarian).Error; err != nil {
+			return "", errors.New("librarian not found for the user")
+		}
+		claims["librarian_id"] = librarian.ID
+	}
+
+	// Fetch owner_id for owners
+	if role == "owner" {
+		var owner struct {
+			ID uint
+		}
+		if err := db.Table("owner_memberships").Select("id").Where("user_id = ?", userID).First(&owner).Error; err != nil {
+			return "", errors.New("owner not found for the user")
+		}
+		claims["owner_id"] = owner.ID
+	}
 
 	// Add library_id for librarians or members (if applicable)
 	if (role == "librarian" || role == "member") && libraryID != nil {

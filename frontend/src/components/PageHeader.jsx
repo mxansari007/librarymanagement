@@ -1,3 +1,4 @@
+import React from 'react';
 import {useState,useMemo} from 'react'
 import styles from '../styles/LocalGlobals.module.css'
 
@@ -9,8 +10,7 @@ const PageHeader = ({ title }) => {
 
     const user = JSON.parse(localStorage.getItem('user')) || {library: {}};
 
-    const library = useMemo(() => user.library_name, [user])
-
+    const library = useMemo(() => user.library?.name || "No Library", [user]);
 
 
         return (

@@ -1,3 +1,4 @@
+import React from "react";
 import { useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import styles from "../styles/Modal.module.css";
@@ -30,6 +31,7 @@ const Modal = ({ label, children, modalState, setModalState }) => {
 
   return (
     <div
+      data-testid="modal-overlay"  // Add this for testing
       className={`${styles.modal} ${modalState ? styles.modal_open : styles.modal_closed}`}
       onClick={handleOverlayClick}
     >
@@ -47,7 +49,7 @@ const Modal = ({ label, children, modalState, setModalState }) => {
         <div className={styles.modal_body}>{children}</div>
       </div>
     </div>
-  );
+);
 };
 
 export default Modal;

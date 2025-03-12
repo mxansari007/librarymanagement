@@ -1,3 +1,4 @@
+import React from 'react';
 import styles from '../styles/Input.module.css';
 
 const Input = ({ name, type, placeholder, register, error, validation, ...rest }) => {

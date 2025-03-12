@@ -38,6 +38,9 @@ type BookRequest struct {
 	Librarian  *Librarian         `gorm:"foreignKey:LibrarianID" json:"-"`
 }
 
+
+
+
 // BookTransaction represents the borrowing of a book.
 type BookTransaction struct {
 	ID               uint      `gorm:"primaryKey" json:"id"`
@@ -46,11 +49,11 @@ type BookTransaction struct {
 	LibrarianID      uint      `json:"librarian_id"`
 	DueDate          time.Time `gorm:"not null" json:"due_date"`
 	BorrowedAt       time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"borrowed_at"`
-	ReturnedAt       time.Time `json:"returned_at"`
+	ReturnedAt       *time.Time `json:"returned_at"`
 	IsReturnApproved bool      `gorm:"default:false" json:"is_return_approved"`
 
 	// Relationships
 	Membership LibraryMembership `gorm:"foreignKey:MembershipID" json:"-"`
-	Book       Book              `gorm:"foreignKey:BookID" json:"-"`
 	Librarian  Librarian         `gorm:"foreignKey:LibrarianID" json:"-"`
+	Book 		Book `gorm:"foreignKey:BookID" json:"book"` // Ensure it has json:"book"
 }

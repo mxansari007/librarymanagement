@@ -96,17 +96,20 @@ func GetLibraryDashboard(db *gorm.DB) gin.HandlerFunc {
         var totalBooks, totalMembers, totalIssuedBooks, totalOverdueBooks, totalLibrarians int64
         var totalAvailableCopies int64
 
-        // Get total books in library by summing TotalCopies
+        // Get total books in library by summing TotalCopies (Handle NULL with COALESCE)
         if err := db.Model(&models.Book{}).
             Where("library_id = ?", libraryID).
-            Select("SUM(total_copies)").Scan(&totalBooks).Error; err != nil {
-            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch total books"})
+            Select("COALESCE(SUM(total_copies), 0)").
+            Scan(&totalBooks).Error; err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch total books", "details": err.Error()})
             return
         }
 
         // Get total members in library
-        if err := db.Model(&models.LibraryMembership{}).Where("library_id = ?", libraryID).Count(&totalMembers).Error; err != nil {
-            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch total members"})
+        if err := db.Model(&models.LibraryMembership{}).
+            Where("library_id = ?", libraryID).
+            Count(&totalMembers).Error; err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch total members", "details": err.Error()})
             return
         }
 
@@ -115,7 +118,7 @@ func GetLibraryDashboard(db *gorm.DB) gin.HandlerFunc {
             Joins("JOIN books ON books.id = book_transactions.book_id").
             Where("books.library_id = ? AND book_transactions.returned_at IS NULL", libraryID).
             Count(&totalIssuedBooks).Error; err != nil {
-            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch total issued books"})
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch total issued books", "details": err.Error()})
             return
         }
 
@@ -124,21 +127,24 @@ func GetLibraryDashboard(db *gorm.DB) gin.HandlerFunc {
             Joins("JOIN books ON books.id = book_transactions.book_id").
             Where("books.library_id = ? AND book_transactions.returned_at IS NULL AND book_transactions.due_date < ?", libraryID, time.Now()).
             Count(&totalOverdueBooks).Error; err != nil {
-            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch total overdue books"})
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch total overdue books", "details": err.Error()})
             return
         }
 
         // Get total librarians
-        if err := db.Model(&models.Librarian{}).Where("library_id = ?", libraryID).Count(&totalLibrarians).Error; err != nil {
-            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch total librarians"})
+        if err := db.Model(&models.Librarian{}).
+            Where("library_id = ?", libraryID).
+            Count(&totalLibrarians).Error; err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch total librarians", "details": err.Error()})
             return
         }
 
-        // Get total available copies of all books in the library
+        // Get total available copies of all books in the library (Handle NULL with COALESCE)
         if err := db.Model(&models.Book{}).
             Where("library_id = ?", libraryID).
-            Select("SUM(available_copies)").Scan(&totalAvailableCopies).Error; err != nil {
-            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch total available copies"})
+            Select("COALESCE(SUM(available_copies), 0)").
+            Scan(&totalAvailableCopies).Error; err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch total available copies", "details": err.Error()})
             return
         }
 

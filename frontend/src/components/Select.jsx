@@ -1,7 +1,7 @@
-// Select.jsx
+import React from 'react'
 import styles from '../styles/Select.module.css';
 
-const Select = ({ options = ['Option1'], value, onChange, display = "Select Option", label, className }) => {
+const Select = ({ options = [], value, onChange, display = "Select Option", label, className }) => {
   return (
     <div className={`${styles.selectContainer} ${className}`}>
       {label && <label className={styles.label}>{label}</label>}
@@ -9,8 +9,8 @@ const Select = ({ options = ['Option1'], value, onChange, display = "Select Opti
         <select value={value} onChange={onChange}>
           <option value="" disabled>{display}</option>
           {options.map((option, index) => (
-            <option key={index} value={option}>
-              {option}
+            <option key={option.value} value={option.value}>
+              {option.label} {/* Display name with ID */}
             </option>
           ))}
         </select>

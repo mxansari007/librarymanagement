@@ -1,3 +1,4 @@
+import React from "react";
 import { useState, useEffect } from "react";
 import styles from "../styles/Table.module.css";
 import Button from "../components/Button";
@@ -6,14 +7,14 @@ const Table = ({
   Data = [], 
   ColumnDef = [], 
   buttons = [], 
-  imageKey = [], // Now an array of keys
-  imageName = []  // Now an array of names
+  imageKey = [], 
+  imageName = []  
 }) => {
   const [columnDef, setColumnDef] = useState([]);
   const [data, setTableData] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
-  const [selectedImageName, setSelectedImageName] = useState(""); // For dynamic download names
+  const [selectedImageName, setSelectedImageName] = useState(""); 
 
   useEffect(() => {
     if (JSON.stringify(data) !== JSON.stringify(Data)) {
@@ -70,7 +71,7 @@ const Table = ({
               <tr key={rowIndex}>
                 {columnDef.map((col, colIndex) => (
                   <td key={`${rowIndex}-${colIndex}`}>
-                    {getNestedValue(row, col.key)}
+                    {col.render ? col.render(getNestedValue(row, col.key)) : getNestedValue(row, col.key)}
                   </td>
                 ))}
                 {buttons.length > 0 && (

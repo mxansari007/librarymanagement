@@ -1,3 +1,4 @@
+import React from "react";
 import { useState, useEffect } from "react";
 import styles from "../styles/Sidebar.module.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -23,13 +24,13 @@ const Sidebar = ({ Options = [], User = { firstName: "Guest", lastName: "", role
   return (
     <>
       {/* Floating Sidebar */}
-      <div className={`${styles.container} ${isMobileOpen ? styles.open : ""}`}>
+      <div data-testid="sidebar" className={`${styles.container} ${isMobileOpen ? styles.open : ""}`}>
         <div className={styles.logo}>
           <h2>Library Management</h2>
         </div>
 
         <div className={styles.user}>
-          <div className={styles.avatar}></div>
+          <div className={styles.avatar}><p>{User?.firstName[0].toUpperCase()}</p></div>
           <div className={styles.user_details}>
             <h3>{User?.firstName} {User?.lastName}</h3>
             <p>{User?.role}</p>
@@ -57,7 +58,7 @@ const Sidebar = ({ Options = [], User = { firstName: "Guest", lastName: "", role
       </div>
 
       {/* Hamburger Button for Mobile */}
-      <div onClick={() => setIsMobileOpen(!isMobileOpen)} className={styles.hamburger}>
+      <div role="button" onClick={() => setIsMobileOpen(!isMobileOpen)} className={styles.hamburger}>
         <div></div>
         <div></div>
         <div></div>

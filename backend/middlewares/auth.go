@@ -89,6 +89,16 @@ func AuthMiddleware(requiredRole string) gin.HandlerFunc {
             }
             c.Set("librarian_id", uint(librarianIDFloat))
 		}
+
+		if role == "owner" {
+			ownerIDFloat, ok := claims["owner_id"].(float64)
+            if!ok {
+                c.JSON(http.StatusUnauthorized, gin.H{"error": "Owner ID missing"})
+                c.Abort()
+                return
+            }
+            c.Set("owner_id", uint(ownerIDFloat))
+        }
 		
 
 		// Store membership_id for members

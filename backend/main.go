@@ -9,6 +9,7 @@ import (
 	"github.com/mxansari007/librarymanagement/routes"
 	"github.com/gin-contrib/cors"
 	"time"
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 func main() {
@@ -22,6 +23,10 @@ func main() {
 
 	// Create a new Gin router
 	router := gin.Default()
+
+
+
+	router.GET("/swagger/*any", gin.WrapH(httpSwagger.WrapHandler))
 
 
 	router.Use(cors.New(cors.Config{

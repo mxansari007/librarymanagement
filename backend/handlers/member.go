@@ -11,6 +11,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 	"strings"
+    "log"
 )
 
 func SignupMember(db *gorm.DB) gin.HandlerFunc {
@@ -113,28 +114,7 @@ func SignupMember(db *gorm.DB) gin.HandlerFunc {
     }
 }
 
-// make api to fetch all books by name if book is available in library make it a get request ignore case sensitivity
 
-
-// type Book struct {
-// 	ID        uint      `gorm:"primaryKey" json:"id"`
-// 	LibraryID uint      `gorm:"not null" json:"library_id"`
-// 	Title     string    `gorm:"not null" json:"title"`
-// 	Author    string    `gorm:"not null" json:"author"`
-// 	Publisher string    `json:"publisher"`
-// 	BookImage string    `json:"book_image"`
-// 	Version   string    `json:"version"`
-// 	ISBN      string    `gorm:"unique;not null" json:"isbn"`
-// 	TotalCopies int       `gorm:"not null" json:"total_copies"`
-// 	AvailableCopies int    `gorm:"not null" json:"available_copies"`
-// 	CreatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
-// }
-
-
-
-
-// FetchBooks handles searching books by different criteria (Name, ISBN, Author)
-// FetchBooks handles searching books by different criteria (Name, ISBN, Author)
 func FetchBooks(db *gorm.DB) gin.HandlerFunc {
     return func(c *gin.Context) {
         libraryIDRaw, exists := c.Get("library_id")
@@ -152,6 +132,7 @@ func FetchBooks(db *gorm.DB) gin.HandlerFunc {
         title := c.Query("title")
         isbn := c.Query("isbn")
         author := c.Query("author")
+        publisher := c.Query("publisher")
 
         if title == "" && isbn == "" && author == "" {
             c.JSON(http.StatusBadRequest, gin.H{"error": "At least one search parameter (title, isbn, or author) is required"})
@@ -171,6 +152,10 @@ func FetchBooks(db *gorm.DB) gin.HandlerFunc {
 
         if author != "" {
             query = query.Where("LOWER(author) LIKE ?", "%"+strings.ToLower(author)+"%")
+        }
+
+        if publisher != "" {
+            query = query.Where("LOWER(publisher) LIKE ?", "%"+strings.ToLower(publisher)+"%")
         }
 
         if err := query.Find(&matchingBooks).Error; err != nil {
@@ -341,5 +326,128 @@ func CancelBookRequest(db *gorm.DB) gin.HandlerFunc {
         tx.Commit()
 
         c.JSON(http.StatusOK, gin.H{"message": "Book request canceled successfully"})
+    }
+}
+
+
+func GetMemberDashboard(db *gorm.DB) gin.HandlerFunc {
+    return func(c *gin.Context) {
+        // Extract member ID, library ID, and user ID from the auth middleware
+        memberIDRaw, exists := c.Get("membership_id")
+        if !exists {
+            c.JSON(http.StatusUnauthorized, gin.H{"error": "Member authentication required"})
+            return
+        }
+
+        libraryIDRaw, exists := c.Get("library_id")
+        if !exists {
+            c.JSON(http.StatusUnauthorized, gin.H{"error": "Library information missing"})
+            return
+        }
+
+        userIDRaw, exists := c.Get("user_id")
+        if !exists {
+            c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID missing"})
+            return
+        }
+
+        // Convert to appropriate types
+        memberID, ok := memberIDRaw.(uint)
+        if !ok {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid member ID format"})
+            return
+        }
+
+        libraryID, ok := libraryIDRaw.(uint)
+        if !ok {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid library ID format"})
+            return
+        }
+
+        userID, ok := userIDRaw.(uint)
+        if !ok {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid user ID format"})
+            return
+        }
+
+        var totalBooksBorrowed int64
+        var totalOverdueBooks int64
+
+        // Count total books borrowed by the member
+        if err := db.Model(&models.BookTransaction{}).
+            Joins("JOIN books ON books.id = book_transactions.book_id").
+            Where("book_transactions.membership_id = ? AND books.library_id = ? AND book_transactions.is_return_approved = false", memberID, libraryID).
+            Count(&totalBooksBorrowed).Error; err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch borrowed books count"})
+            return
+        }
+
+
+
+        // Count total overdue books (Handle nullable `due_date` and possible DB issues)
+        query := db.Model(&models.BookTransaction{}).
+            Joins("JOIN books ON books.id = book_transactions.book_id").
+            Where("book_transactions.membership_id = ? AND books.library_id = ? AND book_transactions.is_return_approved = false", 
+                memberID, libraryID).
+            Where("book_transactions.due_date IS NOT NULL AND book_transactions.due_date < ?", time.Now()).
+            Count(&totalOverdueBooks)
+
+        if query.Error != nil {
+            log.Printf("Error fetching overdue books: %v", query.Error) // Log the actual error
+            // totalOverdueBooks = 0 // Gracefully handle failure
+        }
+
+        // Return dashboard values
+        c.JSON(http.StatusOK, gin.H{
+            "user_id":              userID,
+            "library_id":           libraryID,
+            "member_id":            memberID,
+            "total_books_borrowed": totalBooksBorrowed,
+            "total_overdue_books":  totalOverdueBooks,
+        })
+    }
+}
+
+func FetchRecentTransactions(db *gorm.DB) gin.HandlerFunc {
+    return func(c *gin.Context) {
+        // Extract member ID and library ID from auth middleware
+        memberIDRaw, exists := c.Get("membership_id")
+        if !exists {
+            c.JSON(http.StatusUnauthorized, gin.H{"error": "Member authentication required"})
+            return
+        }
+
+        libraryIDRaw, exists := c.Get("library_id")
+        if !exists {
+            c.JSON(http.StatusUnauthorized, gin.H{"error": "Library information missing"})
+            return
+        }
+
+        // Convert to appropriate types
+        memberID, ok := memberIDRaw.(uint)
+        if !ok {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid member ID format"})
+            return
+        }
+
+        libraryID, ok := libraryIDRaw.(uint)
+        if !ok {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid library ID format"})
+            return
+        }
+
+        // Fetch recent transactions with book details
+        var transactions []models.BookTransaction
+        if err := db.Preload("Book"). // Ensure book details are fetched
+            Joins("JOIN books ON books.id = book_transactions.book_id").
+            Where("book_transactions.membership_id = ? AND books.library_id = ?", memberID, libraryID).
+            Order("book_transactions.borrowed_at DESC").
+            Limit(10).
+            Find(&transactions).Error; err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch transactions"})
+            return
+        }
+
+        c.JSON(http.StatusOK, transactions)
     }
 }

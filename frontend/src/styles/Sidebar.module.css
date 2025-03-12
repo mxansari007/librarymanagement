@@ -16,6 +16,7 @@
 /* Floating Effect */
 .container.open {
     transform: translateX(0);
+    
 }
 
 .logo {
@@ -37,6 +38,13 @@
     height: 50px;
     border-radius: 50%;
     background-color: var(--color-primary);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    p{
+        color:white;
+        font-size: large;
+    }
 }
 
 .options {
@@ -83,12 +91,10 @@
     display: none;
 }
 
+
+
+
 @media screen and (max-width: 1200px) {
-
-    .logo{
-        margin-top: 50px;
-    }
-
     .container {
         transform: translateX(-100%);
         position: fixed;
@@ -135,25 +141,6 @@
         transform: translateX(-100%);
         position: fixed;
         left: -250px; /* Move it completely out of view */
-    }
-
-
-    .hamburger {
-        display: flex;
-        flex-direction: column;
-        gap: 0.3em;
-        padding: 1em;
-        cursor: pointer;
-        position: fixed;
-        left: 10px;
-        top: 10px;
-        z-index: 1100;
-    }
-
-    .hamburger div {
-        width: 20px;
-        height: 1.5px;
-        background-color: black;
     }
 
     .container.open {
